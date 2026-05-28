@@ -29,6 +29,7 @@ function buildOwnerNav() {
     <div class="nav-link active" onclick="showPage('dashboard',this)"><i data-lucide="layout-dashboard"></i> Dashboard</div>
     <div class="nav-link" onclick="showPage('users',this)"><i data-lucide="users"></i> Anggota</div>
     <div class="nav-link" onclick="showPage('activity',this)"><i data-lucide="clipboard-list"></i> Riwayat Aktivitas</div>
+    <div class="nav-link" onclick="showPage('broadcast',this)"><i data-lucide="megaphone"></i> Broadcast & Versi</div>
     <div class="nav-section-label">Lainnya</div>
     <a class="nav-link" href="/shop"><i data-lucide="key-round"></i> Beli Key</a>
     <a class="nav-link" href="/download"><i data-lucide="download"></i> Download Apps</a>
@@ -379,13 +380,14 @@ async function doUserLogin() {
 }
 
 async function doUserLogout() {
-  const username = currentUserSession?.username; // simpan sebelum di-null
-  if (currentUserSession) {
+  const username = currentUserSession?.username;
+  const token = currentUserSession?.token;
+  if (token) {
     try {
-      await fetch("/api/user-logout", {
+      await fetch("/api/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({ token }),
       });
     } catch (e) {}
   }
@@ -424,6 +426,7 @@ function showPage(name, el) {
   else if (name === "users") fetchUsers();
   else if (name === "member-log") renderMemberLog();
   else if (name === "member-profile") fillProfilePage();
+  else if (name === "broadcast") loadBroadcastPage();
   initIcons();
 }
 
@@ -1307,3 +1310,194 @@ document.addEventListener("DOMContentLoaded", async () => {
 }
   }, 5000);
 });
+
+// ========================================
+// ===== BROADCAST & VERSION MANAGEMENT =====
+// ========================================
+
+let broadcastsList = [];
+
+async function loadBroadcastPage() {
+  await loadAppVersion();
+  await loadBroadcasts();
+}
+
+// ===== APP VERSION =====
+async function loadAppVersion() {
+  try {
+    const res = await fetch("/api/app-version");
+    const data = await res.json();
+    if (data.success) {
+      const elCurrent = document.getElementById("currentVersionDisplay");
+      if (elCurrent) elCurrent.textContent = "v" + (data.current_version || "0.0.0");
+      const elLatest = document.getElementById("latestVersionDisplay");
+      if (elLatest) elLatest.textContent = "v" + (data.latest_version || "0.0.0");
+      const vc = document.getElementById("versionCurrentInput");
+      if (vc) vc.value = data.current_version || "0.0.0";
+      const vl = document.getElementById("versionLatestInput");
+      if (vl) vl.value = data.latest_version || "0.0.0";
+      const vu = document.getElementById("versionDownloadUrl");
+      if (vu) vu.value = data.download_url || "";
+      const vn = document.getElementById("versionNotes");
+      if (vn) vn.value = data.notes || "";
+      const vf = document.getElementById("versionForceUpdate");
+      if (vf) vf.checked = data.force_update !== false;
+    }
+  } catch (e) { console.warn("Gagal load versi:", e); }
+}
+
+async function handleSaveVersion() {
+  const current_version = document.getElementById("versionCurrentInput").value.trim();
+  const latest_version = document.getElementById("versionLatestInput").value.trim();
+  const download_url = document.getElementById("versionDownloadUrl").value.trim();
+  const notes = document.getElementById("versionNotes").value.trim();
+  const force_update = document.getElementById("versionForceUpdate").checked;
+
+  if (!current_version || !latest_version) { showToast("Versi client dan versi terbaru wajib diisi.", true); return; }
+
+  try {
+    const res = await fetch("/api/app-version", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ current_version, latest_version, download_url, notes, force_update }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Versi disimpan — client: v${current_version} | latest: v${latest_version}`);
+      const elCurrent = document.getElementById("currentVersionDisplay");
+      if (elCurrent) elCurrent.textContent = "v" + current_version;
+      const elLatest = document.getElementById("latestVersionDisplay");
+      if (elLatest) elLatest.textContent = "v" + latest_version;
+    } else {
+      showToast(data.message || "Gagal menyimpan versi.", true);
+    }
+  } catch (e) {
+    showToast("Server error.", true);
+  }
+}
+
+// ===== BROADCASTS =====
+async function loadBroadcasts() {
+  try {
+    const res = await fetch("/api/broadcasts");
+    const data = await res.json();
+    if (data.success) {
+      broadcastsList = data.broadcasts || [];
+      renderBroadcastGrid();
+    }
+  } catch (e) { console.warn("Gagal load broadcasts:", e); }
+}
+
+function renderBroadcastGrid() {
+  const grid = document.getElementById("broadcastGrid");
+  if (!grid) return;
+  if (broadcastsList.length === 0) {
+    grid.innerHTML = `<div class="broadcast-empty"><i data-lucide="megaphone"></i><br/>Belum ada broadcast</div>`;
+    initIcons();
+    return;
+  }
+  const typeEmoji = { info: "ℹ", warning: "⚠", danger: "🚨", success: "✓" };
+  const typeLabel = { info: "Info", warning: "Peringatan", danger: "Penting", success: "Kabar Baik" };
+  grid.innerHTML = broadcastsList.map(b => {
+    const t = b.type || "info";
+    const dateStr = b.created_at ? new Date(b.created_at).toLocaleDateString("id-ID", { day:"numeric", month:"short", year:"numeric" }) : "";
+    return `
+      <div class="broadcast-card bc-${t}">
+        <div class="broadcast-card-icon">${typeEmoji[t] || "ℹ"}</div>
+        <div class="broadcast-card-body">
+          <div class="broadcast-card-header">
+            <span class="broadcast-card-title">${escapeAdminHtml(b.title)}</span>
+            <span class="broadcast-type-badge">${typeLabel[t] || t}</span>
+            <span class="broadcast-status-badge ${b.active ? 'active' : 'inactive'}">${b.active ? '● Aktif' : '○ Nonaktif'}</span>
+          </div>
+          <div class="broadcast-card-msg">${escapeAdminHtml(b.message)}</div>
+          ${dateStr ? `<div class="broadcast-card-meta">${dateStr}</div>` : ""}
+        </div>
+        <div class="broadcast-card-actions">
+          <button class="bc-action-btn" onclick="openEditBroadcast('${b._id}')" title="Edit"><i data-lucide="pencil"></i></button>
+          <button class="bc-action-btn del" onclick="handleDeleteBroadcast('${b._id}','${escapeAdminHtml(b.title)}')" title="Hapus"><i data-lucide="trash-2"></i></button>
+        </div>
+      </div>`;
+  }).join("");
+  initIcons();
+}
+
+function escapeAdminHtml(str) {
+  return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ===== BROADCAST MODAL =====
+function openBroadcastModal() {
+  document.getElementById("broadcastEditId").value = "";
+  document.getElementById("broadcastModalTitle").textContent = "Buat Broadcast";
+  document.getElementById("broadcastTitle").value = "";
+  document.getElementById("broadcastMessage").value = "";
+  document.getElementById("broadcastType").value = "info";
+  document.getElementById("broadcastActive").checked = true;
+  document.getElementById("broadcastModal").classList.add("show");
+  initIcons();
+}
+
+function openEditBroadcast(id) {
+  const b = broadcastsList.find(x => x._id === id);
+  if (!b) return;
+  document.getElementById("broadcastEditId").value = id;
+  document.getElementById("broadcastModalTitle").textContent = "Edit Broadcast";
+  document.getElementById("broadcastTitle").value = b.title;
+  document.getElementById("broadcastMessage").value = b.message;
+  document.getElementById("broadcastType").value = b.type || "info";
+  document.getElementById("broadcastActive").checked = b.active !== false;
+  document.getElementById("broadcastModal").classList.add("show");
+  initIcons();
+}
+
+function closeBroadcastModal() {
+  document.getElementById("broadcastModal").classList.remove("show");
+}
+
+async function handleBroadcastForm() {
+  const id = document.getElementById("broadcastEditId").value;
+  const title = document.getElementById("broadcastTitle").value.trim();
+  const message = document.getElementById("broadcastMessage").value.trim();
+  const type = document.getElementById("broadcastType").value;
+  const active = document.getElementById("broadcastActive").checked;
+
+  if (!title || !message) { showToast("Judul dan pesan wajib diisi.", true); return; }
+
+  try {
+    const isEdit = !!id;
+    const url = isEdit ? `/api/broadcasts/${id}` : "/api/broadcasts";
+    const method = isEdit ? "PUT" : "POST";
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, message, type, active }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(isEdit ? "Broadcast diperbarui." : "Broadcast berhasil dibuat.");
+      closeBroadcastModal();
+      await loadBroadcasts();
+    } else {
+      showToast(data.message || "Gagal.", true);
+    }
+  } catch (e) {
+    showToast("Server error.", true);
+  }
+}
+
+async function handleDeleteBroadcast(id, title) {
+  if (!confirm(`Hapus broadcast "${title}"?`)) return;
+  try {
+    const res = await fetch(`/api/broadcasts/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    if (data.success) {
+      showToast("Broadcast dihapus.");
+      await loadBroadcasts();
+    } else {
+      showToast("Gagal menghapus.", true);
+    }
+  } catch (e) {
+    showToast("Server error.", true);
+  }
+}

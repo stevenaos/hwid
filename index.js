@@ -86,9 +86,29 @@ const logSchema = new mongoose.Schema({
   time: String,
 });
 
+const broadcastSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  message: { type: String, required: true },
+  type: { type: String, default: "info" }, // info | warning | danger | success
+  active: { type: Boolean, default: true },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now },
+});
+
+const appVersionSchema = new mongoose.Schema({
+  current_version: { type: String, default: "0.0.0" },
+  latest_version: { type: String, default: "0.0.0" },
+  download_url: { type: String, default: "" },
+  notes: { type: String, default: "" },
+  force_update: { type: Boolean, default: true },
+  updated_at: { type: Date, default: Date.now },
+});
+
 const User = mongoose.model("User", userSchema);
 const Config = mongoose.model("Config", configSchema);
 const Log = mongoose.model("Log", logSchema);
+const Broadcast = mongoose.model("Broadcast", broadcastSchema);
+const AppVersion = mongoose.model("AppVersion", appVersionSchema);
 
 // ================= HARDCODED ADMIN =================
 const HARDCODED_ADMIN = {
@@ -906,6 +926,109 @@ app.get('/login', (req, res) => res.sendFile(__dirname + '/login.html'));
 app.get('/dashboard', (req, res) => res.sendFile(__dirname + '/index.html'));
 app.get('/shop', (req, res) => res.sendFile(__dirname + '/shop.html'));
 app.get('/download', (req, res) => res.sendFile(__dirname + '/download.html'));
+
+// ================= GET BROADCASTS =================
+app.get("/api/broadcasts", async (req, res) => {
+  try {
+    const broadcasts = await Broadcast.find().sort({ created_at: -1 });
+    res.json({ success: true, broadcasts });
+  } catch {
+    res.status(500).json({ success: false, broadcasts: [] });
+  }
+});
+
+// ================= GET ACTIVE BROADCASTS (public - for login page) =================
+app.get("/api/broadcasts/active", async (req, res) => {
+  try {
+    const broadcasts = await Broadcast.find({ active: true }).sort({ created_at: -1 });
+    res.json({ success: true, broadcasts });
+  } catch {
+    res.status(500).json({ success: false, broadcasts: [] });
+  }
+});
+
+// ================= CREATE BROADCAST =================
+app.post("/api/broadcasts", async (req, res) => {
+  try {
+    const { title, message, type, active } = req.body;
+    if (!title || !message) {
+      return res.status(400).json({ success: false, message: "Judul dan pesan wajib diisi." });
+    }
+    const broadcast = await Broadcast.create({ title, message, type: type || "info", active: active !== false });
+    await pushActivityLog("Broadcast Baru", `"${title}" dibuat.`, "#a78bfa");
+    res.json({ success: true, broadcast });
+  } catch {
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+});
+
+// ================= UPDATE BROADCAST =================
+app.put("/api/broadcasts/:id", async (req, res) => {
+  try {
+    const { title, message, type, active } = req.body;
+    const broadcast = await Broadcast.findByIdAndUpdate(
+      req.params.id,
+      { title, message, type, active, updated_at: new Date() },
+      { new: true }
+    );
+    if (!broadcast) return res.status(404).json({ success: false, message: "Broadcast tidak ditemukan." });
+    res.json({ success: true, broadcast });
+  } catch {
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+});
+
+// ================= DELETE BROADCAST =================
+app.delete("/api/broadcasts/:id", async (req, res) => {
+  try {
+    await Broadcast.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ success: false });
+  }
+});
+
+// ================= GET APP VERSION =================
+app.get("/api/app-version", async (req, res) => {
+  try {
+    let v = await AppVersion.findOne();
+    if (!v) v = await AppVersion.create({ current_version: "0.0.0", latest_version: "0.0.0", download_url: "", notes: "" });
+    res.json({
+      success: true,
+      current_version: v.current_version || "0.0.0",
+      latest_version: v.latest_version || "0.0.0",
+      download_url: v.download_url,
+      notes: v.notes,
+      force_update: v.force_update
+    });
+  } catch {
+    res.status(500).json({ success: false });
+  }
+});
+
+// ================= UPDATE APP VERSION =================
+app.put("/api/app-version", async (req, res) => {
+  try {
+    const { current_version, latest_version, download_url, notes, force_update } = req.body;
+    if (!current_version || !latest_version) return res.status(400).json({ success: false, message: "Versi wajib diisi." });
+    let v = await AppVersion.findOne();
+    if (!v) {
+      v = await AppVersion.create({ current_version, latest_version, download_url: download_url || "", notes: notes || "", force_update: force_update !== false });
+    } else {
+      v.current_version = current_version;
+      v.latest_version = latest_version;
+      v.download_url = download_url || "";
+      v.notes = notes || "";
+      v.force_update = force_update !== false;
+      v.updated_at = new Date();
+      await v.save();
+    }
+    await pushActivityLog("Update Versi", `Versi diubah — client: v${current_version} | latest: v${latest_version}.`, "#f6ad55");
+    res.json({ success: true, current_version: v.current_version, latest_version: v.latest_version });
+  } catch {
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+});
 
 // ================= START =================
 app.listen(PORT, () => {
