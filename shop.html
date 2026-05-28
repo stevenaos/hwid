@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CendekiaMod — Key Shop</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --bg: #060b14;
+      --surface: rgba(255,255,255,0.03);
+      --surface-2: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.07);
+      --border-glow: rgba(99,179,237,0.3);
+      --accent: #63b3ed;
+      --accent-2: #4299e1;
+      --accent-deep: #2b6cb0;
+      --green: #68d391;
+      --yellow: #f6e05e;
+      --red: #fc8181;
+      --amber: #f6ad55;
+      --purple: #a78bfa;
+      --text: #e2e8f0;
+      --text-muted: #718096;
+      --text-dim: rgba(226,232,240,0.45);
+      --sidebar-w: 260px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; }
+
+    .ambient {
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 10%, rgba(66,153,225,0.12) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 85% 90%, rgba(99,179,237,0.08) 0%, transparent 65%),
+        radial-gradient(ellipse 30% 30% at 50% 50%, rgba(43,108,176,0.05) 0%, transparent 70%);
+    }
+    .grid-bg {
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background-image: linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
+      background-size:48px 48px;
+    }
+
+    /* ===== LAYOUT ===== */
+    .layout { display:flex; height:100vh; position:relative; z-index:1; }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width:var(--sidebar-w); background:rgba(6,11,20,0.95);
+      backdrop-filter:blur(20px); border-right:1px solid var(--border);
+      display:flex; flex-direction:column; padding:0; flex-shrink:0;
+      position:fixed; left:0; top:0; bottom:0; z-index:100; transition:transform 0.3s ease;
+    }
+    .sidebar-brand {
+      padding:28px 24px 24px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; gap:12px;
+    }
+    .brand-icon {
+      width:42px; height:42px; border-radius:12px;
+      background:linear-gradient(135deg, var(--accent-deep), var(--accent));
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 0 20px rgba(99,179,237,0.3); flex-shrink:0;
+    }
+    .brand-icon svg { width:20px; height:20px; color:#fff; }
+    .brand-text strong { display:block; font-family:'Syne',sans-serif; font-size:16px; font-weight:800; color:var(--text); letter-spacing:-0.3px; }
+    .brand-text span { font-size:11px; color:var(--text-muted); letter-spacing:1.5px; text-transform:uppercase; font-family:'JetBrains Mono',monospace; }
+
+    .nav-links { padding:20px 12px; flex:1; overflow-y:auto; }
+    .nav-section-label { font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--accent); padding:0 12px; margin:0 0 6px; margin-top:12px; }
+    .nav-section-label:first-child { margin-top:0; }
+    .nav-link {
+      display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px;
+      color:var(--text-dim); font-size:13.5px; font-weight:500; cursor:pointer;
+      transition:all 0.18s; text-decoration:none; margin-bottom:2px; border:1px solid transparent;
+    }
+    .nav-link svg { width:16px; height:16px; flex-shrink:0; }
+    .nav-link:hover { background:var(--surface-2); color:var(--text); }
+    .nav-link.active {
+      background:linear-gradient(135deg, rgba(43,108,176,0.35), rgba(99,179,237,0.12));
+      color:var(--text); border-color:rgba(99,179,237,0.18);
+    }
+    .badge-new {
+      margin-left:auto; font-size:9px; font-weight:700; letter-spacing:1px;
+      background:rgba(104,211,145,0.15); color:var(--green);
+      border:1px solid rgba(104,211,145,0.25); border-radius:20px; padding:2px 7px;
+      font-family:'JetBrains Mono',monospace;
+    }
+
+    .sidebar-bottom { padding:16px 12px 24px; border-top:1px solid var(--border); }
+    .user-pill {
+      display:flex; align-items:center; gap:10px; padding:10px 12px;
+      border-radius:10px; background:var(--surface); border:1px solid var(--border);
+    }
+    .user-pill-avatar {
+      width:32px; height:32px; border-radius:8px;
+      background:linear-gradient(135deg, var(--accent-deep), var(--accent));
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Syne',sans-serif; font-size:13px; font-weight:800; color:#fff; flex-shrink:0;
+    }
+    .user-pill-info strong { display:block; font-size:13px; color:var(--text); font-weight:600; }
+    .user-pill-info span { font-size:11px; color:var(--text-muted); }
+    .user-pill-logout {
+      margin-left:auto; background:none; border:none; color:var(--text-muted);
+      cursor:pointer; padding:4px; border-radius:6px; transition:all 0.15s;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .user-pill-logout:hover { background:rgba(252,129,129,0.1); color:var(--red); }
+    .user-pill-logout svg { width:15px; height:15px; }
+
+    /* ===== HAMBURGER ===== */
+    .hamburger {
+      display:none; position:fixed; top:16px; left:16px; z-index:200;
+      background:var(--surface-2); border:1px solid var(--border);
+      border-radius:10px; padding:8px; cursor:pointer; align-items:center; justify-content:center;
+    }
+    .hamburger svg { width:20px; height:20px; color:var(--text); }
+
+    /* ===== MAIN ===== */
+    .main { margin-left:var(--sidebar-w); flex:1; overflow-y:auto; min-height:100vh; }
+
+    /* ===== PAGE HEADER ===== */
+    .page-hero {
+      padding:60px 60px 40px; position:relative; overflow:hidden;
+      border-bottom:1px solid var(--border);
+    }
+    .page-hero::before {
+      content:''; position:absolute; top:-60px; right:-80px;
+      width:500px; height:500px;
+      background:radial-gradient(circle, rgba(99,179,237,0.07) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .page-hero-eyebrow {
+      display:inline-flex; align-items:center; gap:8px;
+      background:rgba(99,179,237,0.08); border:1px solid rgba(99,179,237,0.2);
+      border-radius:20px; padding:5px 14px; margin-bottom:20px;
+      font-size:11px; font-weight:600; color:var(--accent);
+      letter-spacing:1px; text-transform:uppercase; font-family:'JetBrains Mono',monospace;
+    }
+    .page-hero-eyebrow svg { width:12px; height:12px; }
+    .page-hero h1 { font-family:'Syne',sans-serif; font-size:38px; font-weight:800; letter-spacing:-1.5px; color:var(--text); margin-bottom:10px; line-height:1.1; }
+    .page-hero h1 span { background:linear-gradient(135deg, var(--accent), var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .page-hero p { font-size:15px; color:var(--text-muted); line-height:1.6; max-width:500px; }
+
+    /* ===== CONTENT ===== */
+    .content { padding:48px 60px 60px; }
+
+    /* ===== PLAN CARDS ===== */
+    .plans-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:48px; }
+    .plan-card {
+      background:var(--surface); border:1px solid var(--border); border-radius:20px;
+      padding:32px 28px; position:relative; transition:all 0.25s; cursor:pointer;
+      display:flex; flex-direction:column;
+    }
+    .plan-card:hover { transform:translateY(-4px); border-color:rgba(99,179,237,0.2); box-shadow:0 24px 60px rgba(0,0,0,0.35); }
+    .plan-card.featured {
+      background:linear-gradient(145deg, rgba(43,108,176,0.18), rgba(66,153,225,0.07));
+      border-color:rgba(99,179,237,0.3);
+      box-shadow:0 0 0 1px rgba(99,179,237,0.08), 0 16px 48px rgba(0,0,0,0.25);
+    }
+    .plan-card.featured:hover { border-color:rgba(99,179,237,0.5); box-shadow:0 0 0 1px rgba(99,179,237,0.15), 0 28px 70px rgba(0,0,0,0.4); }
+    .plan-badge {
+      position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+      background:linear-gradient(135deg, var(--accent-deep), var(--accent-2));
+      color:#fff; font-size:10px; font-weight:700; letter-spacing:1.5px;
+      text-transform:uppercase; padding:4px 16px; border-radius:20px;
+      font-family:'JetBrains Mono',monospace; white-space:nowrap;
+      box-shadow:0 4px 14px rgba(66,153,225,0.4);
+    }
+    .plan-icon {
+      width:52px; height:52px; border-radius:14px; margin-bottom:20px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .plan-icon svg { width:24px; height:24px; }
+    .plan-icon.hourly { background:rgba(246,173,85,0.12); color:var(--amber); }
+    .plan-icon.weekly { background:rgba(99,179,237,0.12); color:var(--accent); }
+    .plan-icon.monthly { background:rgba(104,211,145,0.12); color:var(--green); }
+    .plan-label { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; }
+    .plan-price { font-family:'Syne',sans-serif; font-size:42px; font-weight:800; letter-spacing:-2px; color:var(--text); line-height:1; margin-bottom:4px; }
+    .plan-price sup { font-size:18px; font-weight:700; vertical-align:top; margin-top:8px; display:inline-block; color:var(--text-muted); font-family:'Inter',sans-serif; }
+    .plan-period { font-size:13px; color:var(--text-muted); margin-bottom:24px; }
+    .plan-features { list-style:none; flex:1; margin-bottom:28px; }
+    .plan-features li {
+      display:flex; align-items:center; gap:10px; font-size:13.5px;
+      color:rgba(226,232,240,0.7); padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04);
+    }
+    .plan-features li:last-child { border-bottom:none; }
+    .plan-features li svg { width:14px; height:14px; color:var(--green); flex-shrink:0; }
+    .btn-plan {
+      width:100%; padding:13px; border-radius:12px; font-family:'Inter',sans-serif;
+      font-size:14px; font-weight:700; cursor:pointer; transition:all 0.2s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      text-decoration:none; border:none;
+    }
+    .btn-plan svg { width:16px; height:16px; }
+    .btn-plan-outline {
+      background:transparent; border:1.5px solid var(--border-glow); color:var(--accent);
+    }
+    .btn-plan-outline:hover { background:rgba(99,179,237,0.08); transform:translateY(-1px); }
+    .btn-plan-solid {
+      background:linear-gradient(135deg, var(--accent-deep), var(--accent-2));
+      color:#fff; box-shadow:0 8px 28px rgba(66,153,225,0.3);
+    }
+    .btn-plan-solid:hover { transform:translateY(-2px); box-shadow:0 14px 36px rgba(66,153,225,0.45); }
+
+    /* ===== INFO PANELS ===== */
+    .info-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:32px; }
+    .info-panel {
+      background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:28px;
+      transition:border-color 0.2s;
+    }
+    .info-panel:hover { border-color:rgba(99,179,237,0.12); }
+    .info-panel-title {
+      display:flex; align-items:center; gap:9px; font-family:'Syne',sans-serif;
+      font-size:15px; font-weight:800; color:var(--text); margin-bottom:6px;
+    }
+    .info-panel-title svg { width:16px; height:16px; color:var(--accent); }
+    .info-panel-sub { font-size:13px; color:var(--text-muted); margin-bottom:20px; line-height:1.5; }
+    .step-list { list-style:none; }
+    .step-item {
+      display:flex; align-items:flex-start; gap:12px; padding:10px 0;
+      border-bottom:1px solid rgba(255,255,255,0.04); font-size:13.5px; color:rgba(226,232,240,0.75);
+    }
+    .step-item:last-child { border-bottom:none; }
+    .step-num {
+      width:24px; height:24px; border-radius:7px; flex-shrink:0;
+      background:rgba(99,179,237,0.1); color:var(--accent);
+      font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .faq-item { padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+    .faq-item:last-child { border-bottom:none; }
+    .faq-q { font-size:13.5px; font-weight:600; color:var(--text); margin-bottom:4px; }
+    .faq-a { font-size:13px; color:var(--text-muted); line-height:1.6; }
+
+    /* ===== CONTACT BANNER ===== */
+    .contact-banner {
+      background:linear-gradient(135deg, rgba(43,108,176,0.15), rgba(26,54,93,0.2));
+      border:1px solid rgba(99,179,237,0.2); border-radius:20px;
+      padding:36px 40px; display:flex; align-items:center; justify-content:space-between;
+      gap:24px; position:relative; overflow:hidden;
+    }
+    .contact-banner::before {
+      content:''; position:absolute; top:-40px; right:-60px;
+      width:280px; height:280px;
+      background:radial-gradient(circle, rgba(99,179,237,0.1) 0%, transparent 70%);
+    }
+    .contact-banner-text { position:relative; z-index:1; }
+    .contact-banner-text h3 { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; color:var(--text); margin-bottom:6px; letter-spacing:-0.5px; }
+    .contact-banner-text p { font-size:13.5px; color:var(--text-muted); line-height:1.6; max-width:440px; }
+    .contact-banner-actions { display:flex; gap:12px; flex-shrink:0; position:relative; z-index:1; }
+    .btn-tg {
+      display:inline-flex; align-items:center; gap:9px; padding:13px 24px;
+      border-radius:12px; font-family:'Inter',sans-serif; font-size:14px; font-weight:700;
+      text-decoration:none; transition:all 0.2s; white-space:nowrap;
+    }
+    .btn-tg svg { width:17px; height:17px; }
+    .btn-tg-primary {
+      background:linear-gradient(135deg, #0088cc, #0099dd);
+      color:#fff; box-shadow:0 8px 24px rgba(0,136,204,0.3);
+    }
+    .btn-tg-primary:hover { transform:translateY(-2px); box-shadow:0 14px 32px rgba(0,136,204,0.45); }
+    .btn-tg-outline {
+      background:transparent; border:1.5px solid var(--border-glow); color:var(--accent);
+    }
+    .btn-tg-outline:hover { background:rgba(99,179,237,0.07); transform:translateY(-1px); }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display:none; position:fixed; inset:0; z-index:500;
+      background:rgba(6,11,20,0.85); backdrop-filter:blur(8px);
+      align-items:center; justify-content:center; padding:24px;
+    }
+    .modal-overlay.show { display:flex; }
+    .modal-card {
+      background:rgba(8,14,26,0.98); border:1px solid var(--border-glow);
+      border-radius:20px; padding:0; width:100%; max-width:420px;
+      box-shadow:0 40px 80px rgba(0,0,0,0.6); animation:modalIn 0.3s cubic-bezier(0.22,1,0.36,1);
+      overflow:hidden;
+    }
+    @keyframes modalIn { from{opacity:0;transform:translateY(20px) scale(0.97)} to{opacity:1;transform:none} }
+    .modal-header { padding:24px 28px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .modal-header-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .modal-header-icon svg { width:18px; height:18px; }
+    .modal-title { font-family:'Syne',sans-serif; font-size:17px; font-weight:800; color:var(--text); letter-spacing:-0.3px; }
+    .modal-close { margin-left:auto; background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; border-radius:6px; display:flex; }
+    .modal-close:hover { color:var(--red); }
+    .modal-close svg { width:16px; height:16px; }
+    .modal-body { padding:24px 28px; }
+    .modal-plan-summary {
+      background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
+      padding:16px 18px; margin-bottom:20px; display:flex; align-items:center; gap:14px;
+    }
+    .modal-plan-icon { width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .modal-plan-icon svg { width:18px; height:18px; }
+    .modal-plan-name { font-family:'Syne',sans-serif; font-size:15px; font-weight:800; color:var(--text); }
+    .modal-plan-price { font-size:13px; color:var(--text-muted); }
+    .qris-wrap {
+      background:#fff; border-radius:14px; padding:16px;
+      display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+    }
+    .qris-wrap img { max-width:220px; width:100%; height:auto; display:block; border-radius:6px; }
+    .qris-placeholder {
+      width:220px; height:220px; background:#f5f5f5; border-radius:10px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+      color:#aaa; font-size:12px; font-family:'JetBrains Mono',monospace;
+    }
+    .qris-placeholder svg { width:32px; height:32px; color:#ccc; }
+    .modal-note { font-size:12.5px; color:var(--text-muted); line-height:1.6; text-align:center; margin-bottom:20px; }
+    .modal-footer { padding:0 28px 24px; display:flex; gap:10px; }
+    .btn-modal-primary {
+      flex:1; padding:13px; border-radius:11px; border:none;
+      background:linear-gradient(135deg, #0088cc, #0099dd);
+      color:#fff; font-family:'Inter',sans-serif; font-size:14px; font-weight:700;
+      cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+      text-decoration:none; transition:all 0.2s;
+    }
+    .btn-modal-primary:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(0,136,204,0.35); }
+    .btn-modal-primary svg { width:16px; height:16px; }
+    .btn-modal-secondary {
+      padding:13px 18px; border-radius:11px; border:1.5px solid var(--border);
+      background:transparent; color:var(--text-muted); font-family:'Inter',sans-serif;
+      font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s;
+    }
+    .btn-modal-secondary:hover { border-color:var(--border-glow); color:var(--text); }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position:fixed; bottom:28px; right:28px; z-index:9999;
+      background:rgba(6,11,20,0.97); border:1px solid var(--border-glow);
+      backdrop-filter:blur(20px); border-radius:13px; padding:13px 20px;
+      color:var(--text); font-size:13.5px; font-weight:600;
+      display:flex; align-items:center; gap:10px;
+      box-shadow:0 16px 48px rgba(0,0,0,0.5);
+      transform:translateX(130%); transition:transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .toast.show { transform:translateX(0); }
+    .toast svg { width:16px; height:16px; flex-shrink:0; }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width:5px; }
+    ::-webkit-scrollbar-track { background:rgba(255,255,255,0.02); }
+    ::-webkit-scrollbar-thumb { background:rgba(99,179,237,0.2); border-radius:8px; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width:900px) {
+      .sidebar { transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); }
+      .main { margin-left:0; }
+      .hamburger { display:flex; }
+      .page-hero { padding:70px 24px 32px; }
+      .page-hero h1 { font-size:28px; }
+      .content { padding:32px 24px 48px; }
+      .plans-grid { grid-template-columns:1fr; }
+      .info-row { grid-template-columns:1fr; }
+      .contact-banner { flex-direction:column; padding:28px 24px; }
+      .contact-banner-actions { width:100%; flex-direction:column; }
+      .btn-tg { justify-content:center; }
+    }
+    @media (max-width:600px) {
+      .plans-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient"></div>
+  <div class="grid-bg"></div>
+
+  <button class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')" id="hamburger">
+    <i data-lucide="menu"></i>
+  </button>
+
+  <div class="layout">
+    <!-- ===== SIDEBAR ===== -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon"><i data-lucide="shield-check"></i></div>
+        <div class="brand-text">
+          <strong>CendekiaMod</strong>
+          <span>System v2.4</span>
+        </div>
+      </div>
+      <div class="nav-links">
+        <div class="nav-section-label">Menu</div>
+        <a href="/" class="nav-link"><i data-lucide="home"></i> Home</a>
+        <a href="/dashboard" class="nav-link" onclick="goToDashboard(); return false;"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+        <a href="/shop" class="nav-link active"><i data-lucide="key-round"></i> Key Shop <span class="badge-new">OPEN</span></a>
+        <a href="/download" class="nav-link"><i data-lucide="download"></i> Download APK</a>
+      </div>
+      <div class="sidebar-bottom" id="sidebarBottom">
+        <!-- Injected by JS -->
+      </div>
+    </nav>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main">
+      <!-- Page Hero -->
+      <div class="page-hero">
+        <div class="page-hero-eyebrow"><i data-lucide="shopping-bag"></i> Key Shop</div>
+        <h1>Beli <span>Key Akses</span><br>CendekiaMod</h1>
+        <p>Pilih paket yang sesuai kebutuhan Anda. Pembayaran via QRIS, aktivasi cepat oleh tim kami.</p>
+      </div>
+
+      <div class="content">
+        <!-- Plan Cards -->
+        <div class="plans-grid">
+
+          <!-- Hourly -->
+          <div class="plan-card" onclick="openModal('hourly')">
+            <div class="plan-icon hourly"><i data-lucide="timer"></i></div>
+            <div class="plan-label">Hourly</div>
+            <div class="plan-price"><sup>Rp</sup>5.000</div>
+            <div class="plan-period">per 1 jam</div>
+            <ul class="plan-features">
+              <li><i data-lucide="check"></i> 1 jam akses penuh</li>
+              <li><i data-lucide="check"></i> 1 perangkat</li>
+              <li><i data-lucide="check"></i> Key unik otomatis</li>
+              <li><i data-lucide="check"></i> Aktivasi instan</li>
+            </ul>
+            <button class="btn-plan btn-plan-outline"><i data-lucide="key-round"></i> Beli Sekarang</button>
+          </div>
+
+          <!-- Weekly (Featured) -->
+          <div class="plan-card featured" onclick="openModal('weekly')">
+            <div class="plan-badge">⭐ Paling Populer</div>
+            <div class="plan-icon weekly"><i data-lucide="calendar-days"></i></div>
+            <div class="plan-label">Weekly</div>
+            <div class="plan-price"><sup>Rp</sup>26.000</div>
+            <div class="plan-period">per 7 hari</div>
+            <ul class="plan-features">
+              <li><i data-lucide="check"></i> 7 hari akses penuh</li>
+              <li><i data-lucide="check"></i> 1 perangkat</li>
+              <li><i data-lucide="check"></i> Key unik otomatis</li>
+              <li><i data-lucide="check"></i> Support prioritas</li>
+            </ul>
+            <button class="btn-plan btn-plan-solid"><i data-lucide="key-round"></i> Beli Sekarang</button>
+          </div>
+
+          <!-- Monthly -->
+          <div class="plan-card" onclick="openModal('monthly')">
+            <div class="plan-icon monthly"><i data-lucide="calendar-check"></i></div>
+            <div class="plan-label">Monthly</div>
+            <div class="plan-price"><sup>Rp</sup>46.000</div>
+            <div class="plan-period">per 30 hari</div>
+            <ul class="plan-features">
+              <li><i data-lucide="check"></i> 30 hari akses penuh</li>
+              <li><i data-lucide="check"></i> 1 perangkat</li>
+              <li><i data-lucide="check"></i> Key unik otomatis</li>
+              <li><i data-lucide="check"></i> Support prioritas</li>
+            </ul>
+            <button class="btn-plan btn-plan-outline"><i data-lucide="key-round"></i> Beli Sekarang</button>
+          </div>
+
+        </div>
+
+        <!-- Info Panels -->
+        <div class="info-row">
+          <div class="info-panel">
+            <div class="info-panel-title"><i data-lucide="list-ordered"></i> Cara Pembelian</div>
+            <div class="info-panel-sub">Ikuti langkah berikut untuk mendapatkan key akses Anda.</div>
+            <ol class="step-list">
+              <li class="step-item"><div class="step-num">1</div><span>Pilih paket yang sesuai dan klik <strong style="color:var(--text);">Beli Sekarang</strong></span></li>
+              <li class="step-item"><div class="step-num">2</div><span>Scan QRIS yang ditampilkan dan lakukan pembayaran</span></li>
+              <li class="step-item"><div class="step-num">3</div><span>Hubungi kami via Telegram dengan bukti pembayaran</span></li>
+              <li class="step-item"><div class="step-num">4</div><span>Key akses akan dikirimkan dan diaktifkan oleh tim kami</span></li>
+            </ol>
+          </div>
+          <div class="info-panel">
+            <div class="info-panel-title"><i data-lucide="help-circle"></i> FAQ</div>
+            <div class="info-panel-sub">Pertanyaan yang sering ditanyakan seputar pembelian key.</div>
+            <div class="faq-item">
+              <div class="faq-q">Berapa lama aktivasi setelah pembayaran?</div>
+              <div class="faq-a">Biasanya dalam 5–15 menit setelah konfirmasi pembayaran diterima.</div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Key bisa dipakai di berapa perangkat?</div>
+              <div class="faq-a">Standarnya 1 perangkat per key. Hubungi kami jika butuh lebih.</div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Apakah key bisa diperpanjang?</div>
+              <div class="faq-a">Bisa. Hubungi kami sebelum masa aktif habis untuk perpanjangan.</div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Metode pembayaran apa yang diterima?</div>
+              <div class="faq-a">Saat ini hanya via QRIS (semua dompet digital & m-banking).</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Banner -->
+        <div class="contact-banner">
+          <div class="contact-banner-text">
+            <h3>Butuh Bantuan atau Paket Khusus?</h3>
+            <p>Hubungi admin kami langsung via Telegram untuk pembelian, perpanjangan key, atau pertanyaan seputar layanan CendekiaMod.</p>
+          </div>
+          <div class="contact-banner-actions">
+            <a href="https://t.me/Cendekias_bot" target="_blank" class="btn-tg btn-tg-primary">
+              <i data-lucide="send"></i> Hubungi via Telegram
+            </a>
+            <a href="/" class="btn-tg btn-tg-outline">
+              <i data-lucide="home"></i> Kembali ke Home
+            </a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===== MODAL PEMBAYARAN ===== -->
+  <div class="modal-overlay" id="payModal" onclick="closeModalOutside(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-header-icon" id="modalIcon" style="background:rgba(99,179,237,0.12);color:var(--accent);">
+          <i data-lucide="key-round"></i>
+        </div>
+        <div class="modal-title" id="modalTitle">Beli Key</div>
+        <button class="modal-close" onclick="closeModal()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-plan-summary">
+          <div class="modal-plan-icon" id="summaryIcon" style="background:rgba(99,179,237,0.12);color:var(--accent);">
+            <i data-lucide="key-round"></i>
+          </div>
+          <div>
+            <div class="modal-plan-name" id="summaryName">—</div>
+            <div class="modal-plan-price" id="summaryPrice">—</div>
+          </div>
+        </div>
+        <div class="qris-wrap">
+          <img src="./qris.jpeg" alt="QRIS Payment" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="qris-placeholder" style="display:none;">
+            <i data-lucide="qr-code"></i>
+            <span>qris.jpeg</span>
+          </div>
+        </div>
+        <p class="modal-note">Scan QR di atas lalu hubungi kami via Telegram dengan menyertakan bukti pembayaran dan <strong style="color:var(--text);">username akun</strong> Anda.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-secondary" onclick="closeModal()">Tutup</button>
+        <a href="https://t.me/Cendekias_bot" target="_blank" class="btn-modal-primary">
+          <i data-lucide="send"></i> Konfirmasi via Telegram
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast" id="toast">
+    <span id="toastIcon"><i data-lucide="check-circle-2"></i></span>
+    <span id="toastMsg">Berhasil!</span>
+  </div>
+
+  <script>
+    // ===== PLAN DATA =====
+    const plans = {
+      hourly:  { label:'Key Hourly',  price:'Rp 5.000 / 1 jam',   icon:'timer',          bg:'rgba(246,173,85,0.12)',  color:'var(--amber)' },
+      weekly:  { label:'Key Weekly',  price:'Rp 26.000 / 7 hari', icon:'calendar-days',  bg:'rgba(99,179,237,0.12)', color:'var(--accent)' },
+      monthly: { label:'Key Monthly', price:'Rp 46.000 / 30 hari',icon:'calendar-check', bg:'rgba(104,211,145,0.12)',color:'var(--green)' },
+    };
+
+    function openModal(plan) {
+      const p = plans[plan];
+      document.getElementById('modalTitle').textContent = 'Beli ' + p.label;
+      document.getElementById('summaryName').textContent = p.label;
+      document.getElementById('summaryPrice').textContent = p.price;
+      // update icon colors
+      ['modalIcon','summaryIcon'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.background = p.bg;
+        el.style.color = p.color;
+        el.innerHTML = `<i data-lucide="${p.icon}"></i>`;
+      });
+      document.getElementById('payModal').classList.add('show');
+      lucide.createIcons();
+    }
+
+    function closeModal() {
+      document.getElementById('payModal').classList.remove('show');
+    }
+
+    function closeModalOutside(e) {
+      if (e.target === document.getElementById('payModal')) closeModal();
+    }
+
+    // ===== SESSION =====
+    let currentSession = null;
+
+    function loadSession() {
+      const admin = localStorage.getItem('adminSession');
+      const user  = localStorage.getItem('userSession');
+      if (admin)     { currentSession = JSON.parse(admin); currentSession._type = 'admin'; }
+      else if (user) { currentSession = JSON.parse(user);  currentSession._type = 'user'; }
+      renderSidebarBottom();
+    }
+
+    function renderSidebarBottom() {
+      const el = document.getElementById('sidebarBottom');
+      if (currentSession) {
+        const initial = (currentSession.username || 'U').charAt(0).toUpperCase();
+        const role = currentSession.role === 'admin' ? 'Admin' : 'User';
+        el.innerHTML = `
+          <div class="user-pill">
+            <div class="user-pill-avatar">${initial}</div>
+            <div class="user-pill-info">
+              <strong>${currentSession.username}</strong>
+              <span>${role}</span>
+            </div>
+            <button class="user-pill-logout" onclick="doLogout()" title="Logout">
+              <i data-lucide="log-out"></i>
+            </button>
+          </div>`;
+      } else {
+        el.innerHTML = `
+          <a href="/login" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:linear-gradient(135deg,rgba(43,108,176,0.3),rgba(99,179,237,0.1));border:1px solid rgba(99,179,237,0.2);color:#e2e8f0;font-size:13.5px;font-weight:600;text-decoration:none;transition:all 0.18s;">
+            <i data-lucide="log-in" style="width:16px;height:16px;color:var(--accent);flex-shrink:0;"></i>
+            Masuk ke Akun
+          </a>`;
+      }
+      lucide.createIcons();
+    }
+
+    function doLogout() {
+      if (currentSession?._type === 'admin') localStorage.removeItem('adminSession');
+      else localStorage.removeItem('userSession');
+      currentSession = null;
+      renderSidebarBottom();
+      showToast('Berhasil logout.');
+    }
+
+    function goToDashboard() {
+      if (!currentSession) { window.location.href = '/login'; return; }
+      window.location.href = (currentSession.role === 'admin') ? '/dashboard' : '/dashboard';
+    }
+
+    function handleDownload() {
+      const a = document.createElement('a');
+      a.href = './app-release.apk';
+      a.download = 'CendekiaMod-v2.4.1.apk';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    // ===== TOAST =====
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      document.getElementById('toastIcon').innerHTML = isError
+        ? '<i data-lucide="x-circle"></i>' : '<i data-lucide="check-circle-2"></i>';
+      lucide.createIcons();
+      t.classList.toggle('error', isError);
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ===== BOOT =====
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      loadSession();
+    });
+  </script>
+</body>
+</html>

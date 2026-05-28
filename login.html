@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — CendekiaMod</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg: #060b14;
+      --surface: rgba(255,255,255,0.04);
+      --surface-2: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --border-glow: rgba(99,179,237,0.3);
+      --accent: #63b3ed;
+      --accent-2: #4299e1;
+      --accent-deep: #2b6cb0;
+      --green: #68d391;
+      --red: #fc8181;
+      --text: #e2e8f0;
+      --text-muted: #718096;
+      --text-dim: rgba(226,232,240,0.35);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { min-height:100%; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; }
+
+    /* ===== BACKGROUND ===== */
+    .ambient {
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        radial-gradient(ellipse 60% 60% at 20% 20%, rgba(66,153,225,0.14) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(43,108,176,0.1) 0%, transparent 65%);
+    }
+    .grid-bg {
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background-image: linear-gradient(rgba(99,179,237,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,179,237,0.04) 1px, transparent 1px);
+      background-size:48px 48px;
+      animation:gridShift 20s linear infinite;
+    }
+    @keyframes gridShift { 0%{background-position:0 0} 100%{background-position:0 48px} }
+
+    /* ===== LAYOUT ===== */
+    .page {
+      position:relative; z-index:1;
+      min-height:100vh; display:flex;
+      align-items:center; justify-content:center;
+      padding:24px;
+    }
+
+    /* ===== CARD ===== */
+    .login-card {
+      width:100%; max-width:430px;
+      background:rgba(8,14,26,0.85);
+      backdrop-filter:blur(28px);
+      border:1px solid var(--border);
+      border-radius:24px;
+      padding:48px 44px;
+      box-shadow:
+        0 0 0 1px rgba(99,179,237,0.06),
+        0 40px 80px rgba(0,0,0,0.5),
+        0 0 80px rgba(43,108,176,0.08);
+      animation:cardIn 0.55s cubic-bezier(0.22,1,0.36,1);
+    }
+    @keyframes cardIn {
+      from { opacity:0; transform:translateY(28px) scale(0.97); }
+      to   { opacity:1; transform:translateY(0)    scale(1); }
+    }
+
+    /* ===== BRAND ===== */
+    .brand {
+      display:flex; align-items:center; gap:14px;
+      margin-bottom:36px;
+    }
+    .brand-icon {
+      width:50px; height:50px; border-radius:14px; flex-shrink:0;
+      background:linear-gradient(135deg, var(--accent-deep), var(--accent));
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 0 24px rgba(99,179,237,0.35);
+    }
+    .brand-icon svg { width:22px; height:22px; color:#fff; }
+    .brand-text strong { display:block; font-family:'Syne',sans-serif; font-size:19px; font-weight:800; letter-spacing:-0.5px; }
+    .brand-text span { font-size:11px; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; font-family:'JetBrains Mono',monospace; }
+
+    /* ===== HEADING ===== */
+    .login-title {
+      font-family:'Syne',sans-serif; font-size:28px; font-weight:800;
+      letter-spacing:-1px; color:var(--text); margin-bottom:6px;
+    }
+    .login-sub { font-size:14px; color:var(--text-muted); margin-bottom:32px; line-height:1.5; }
+
+    /* ===== FIELDS ===== */
+    .field-group { margin-bottom:20px; }
+    .field-label {
+      display:block; font-size:11.5px; font-weight:700;
+      color:var(--accent); letter-spacing:1px; text-transform:uppercase;
+      margin-bottom:8px; font-family:'JetBrains Mono',monospace;
+    }
+    .field-wrap { position:relative; }
+    .field-icon {
+      position:absolute; left:14px; top:50%; transform:translateY(-50%);
+      color:var(--text-muted); display:flex; pointer-events:none; opacity:0.7;
+    }
+    .field-icon svg { width:17px; height:17px; }
+    .field-input {
+      width:100%; background:rgba(255,255,255,0.05);
+      border:1.5px solid var(--border); border-radius:12px;
+      padding:14px 16px 14px 46px;
+      color:var(--text); font-family:'Inter',sans-serif; font-size:14.5px;
+      outline:none; transition:all 0.2s;
+    }
+    .field-input::placeholder { color:var(--text-dim); }
+    .field-input:focus {
+      border-color:var(--accent); background:rgba(99,179,237,0.06);
+      box-shadow:0 0 0 3px rgba(99,179,237,0.14);
+    }
+    .field-input.error { border-color:var(--red); box-shadow:0 0 0 3px rgba(252,129,129,0.1); }
+    .toggle-pw {
+      position:absolute; right:13px; top:50%; transform:translateY(-50%);
+      background:none; border:none; color:var(--text-muted);
+      cursor:pointer; padding:4px; display:flex; align-items:center;
+      opacity:0.65; transition:opacity 0.15s;
+    }
+    .toggle-pw:hover { opacity:1; }
+    .toggle-pw svg { width:16px; height:16px; }
+
+    /* ===== ERROR MSG ===== */
+    .error-msg {
+      display:none; color:var(--red); font-size:12.5px;
+      background:rgba(252,129,129,0.08); border:1px solid rgba(252,129,129,0.2);
+      border-radius:9px; padding:10px 14px; margin-bottom:16px;
+      align-items:center; gap:8px;
+    }
+    .error-msg.show { display:flex; animation:shake 0.3s ease; }
+    .error-msg svg { width:14px; height:14px; flex-shrink:0; }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)}
+    }
+
+    /* ===== SUBMIT ===== */
+    .btn-login {
+      width:100%; padding:15px; border:none; border-radius:12px;
+      background:linear-gradient(135deg, var(--accent-deep), var(--accent-2));
+      color:#fff; font-family:'Inter',sans-serif; font-size:15px; font-weight:700;
+      cursor:pointer; transition:all 0.2s; display:flex; align-items:center;
+      justify-content:center; gap:9px; margin-top:6px;
+      box-shadow:0 8px 28px rgba(66,153,225,0.35);
+      letter-spacing:0.2px; position:relative; overflow:hidden;
+    }
+    .btn-login::before {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+      opacity:0; transition:opacity 0.2s;
+    }
+    .btn-login:hover::before { opacity:1; }
+    .btn-login:hover { transform:translateY(-1px); box-shadow:0 14px 36px rgba(66,153,225,0.5); }
+    .btn-login:active { transform:translateY(0); }
+    .btn-login svg { width:17px; height:17px; }
+    .btn-login.loading { opacity:0.7; pointer-events:none; }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      display:flex; align-items:center; gap:12px;
+      margin:20px 0 0; color:var(--text-muted); font-size:12px;
+    }
+    .divider::before, .divider::after {
+      content:''; flex:1; height:1px; background:var(--border);
+    }
+
+    /* ===== FOOTER ===== */
+    .login-footer {
+      text-align:center; margin-top:28px;
+      color:rgba(255,255,255,0.18); font-size:11px;
+      font-family:'JetBrains Mono',monospace; letter-spacing:1.2px;
+    }
+
+    /* ===== BACK LINK ===== */
+    .back-link {
+      display:inline-flex; align-items:center; gap:7px;
+      color:var(--text-muted); font-size:13px; font-weight:500;
+      text-decoration:none; margin-bottom:28px; transition:color 0.15s;
+    }
+    .back-link:hover { color:var(--accent); }
+    .back-link svg { width:14px; height:14px; }
+
+    /* ===== INFO BOX ===== */
+    .info-box {
+      background:rgba(99,179,237,0.07); border:1px solid rgba(99,179,237,0.18);
+      border-radius:10px; padding:12px 14px; margin-bottom:24px;
+      display:flex; align-items:flex-start; gap:10px;
+      font-size:12.5px; color:rgba(226,232,240,0.65); line-height:1.55;
+    }
+    .info-box svg { width:15px; height:15px; color:var(--accent); flex-shrink:0; margin-top:1px; }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position:fixed; bottom:28px; right:28px; z-index:9999;
+      background:rgba(6,11,20,0.96); border:1px solid rgba(99,179,237,0.25);
+      backdrop-filter:blur(16px); border-radius:12px; padding:13px 20px;
+      color:var(--text); font-size:13.5px; font-weight:600;
+      display:flex; align-items:center; gap:10px;
+      box-shadow:0 16px 48px rgba(0,0,0,0.4);
+      transform:translateX(130%); transition:transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .toast.show { transform:translateX(0); }
+    .toast.error { border-color:rgba(252,129,129,0.25); }
+    .toast svg { width:16px; height:16px; flex-shrink:0; }
+  </style>
+</head>
+<body>
+  <div class="ambient"></div>
+  <div class="grid-bg"></div>
+
+  <div class="page">
+    <div class="login-card">
+      <a href="/" class="back-link">
+        <i data-lucide="arrow-left"></i> Kembali ke Home
+      </a>
+
+      <div class="brand">
+        <div class="brand-icon"><i data-lucide="shield-check"></i></div>
+        <div class="brand-text">
+          <strong>CendekiaMod</strong>
+          <span>Secure Access</span>
+        </div>
+      </div>
+
+      <h1 class="login-title">Masuk ke Akun</h1>
+      <p class="login-sub">Masukkan username dan password Anda — sistem akan otomatis mendeteksi tipe akun (Admin / User).</p>
+
+      <div class="info-box">
+        <i data-lucide="info"></i>
+        <span>Login berlaku untuk semua tipe akun. Admin akan diarahkan ke panel administrasi, pengguna biasa ke dashboard key.</span>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Username</label>
+        <div class="field-wrap">
+          <span class="field-icon"><i data-lucide="user"></i></span>
+          <input type="text" id="loginUsername" class="field-input" placeholder="Masukkan username..." autocomplete="username" onkeydown="if(event.key==='Enter') doLogin();" />
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <div class="field-wrap">
+          <span class="field-icon"><i data-lucide="lock"></i></span>
+          <input type="password" id="loginPassword" class="field-input" placeholder="Masukkan password..." autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin();" />
+          <button class="toggle-pw" onclick="togglePw('loginPassword', this)" type="button">
+            <i data-lucide="eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="error-msg" id="loginError">
+        <i data-lucide="x-circle"></i>
+        <span>Username atau password salah.</span>
+      </div>
+
+      <button class="btn-login" id="loginBtn" onclick="doLogin()">
+        <i data-lucide="log-in"></i> Masuk ke Sistem
+      </button>
+
+      <div class="login-footer">SYSTEM v2.4.1 · SECURE LOGIN</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <span id="toastIcon"><i data-lucide="check-circle-2"></i></span>
+    <span id="toastMsg">Berhasil!</span>
+  </div>
+
+  <script>
+    function initIcons() { if (window.lucide) lucide.createIcons(); }
+
+    function togglePw(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.innerHTML = isHidden ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+      lucide.createIcons();
+    }
+
+    function getBrowserDeviceId() {
+      let id = localStorage.getItem('deviceId');
+      if (!id) { id = 'WEB-' + Math.random().toString(36).substring(2,15); localStorage.setItem('deviceId', id); }
+      return id;
+    }
+
+    async function doLogin() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const errEl = document.getElementById('loginError');
+      const btn = document.getElementById('loginBtn');
+      const uInput = document.getElementById('loginUsername');
+      const pInput = document.getElementById('loginPassword');
+
+      errEl.classList.remove('show');
+      uInput.classList.remove('error');
+      pInput.classList.remove('error');
+
+      if (!username || !password) {
+        errEl.querySelector('span').textContent = 'Username dan password wajib diisi.';
+        errEl.classList.add('show');
+        uInput.classList.add('error');
+        pInput.classList.add('error');
+        return;
+      }
+
+      btn.classList.add('loading');
+      btn.innerHTML = '<i data-lucide="loader-2"></i> Memverifikasi...';
+      initIcons();
+
+      try {
+        // Try admin login first
+        const adminRes = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const adminResult = await adminRes.json();
+
+        if (adminResult.success) {
+          const session = adminResult.user;
+          const isRealAdmin = session.role === 'super_admin' || session.role === 'admin';
+
+          if (isRealAdmin) {
+            session._type = 'admin';
+            localStorage.setItem('adminSession', JSON.stringify(session));
+            showToast(`Selamat datang, ${session.username}!`);
+            setTimeout(() => { window.location.href = '/dashboard'; }, 800);
+          } else {
+            // Role user — simpan sebagai userSession, arahkan ke member dashboard
+            session._type = 'user';
+            localStorage.setItem('userSession', JSON.stringify(session));
+            showToast(`Selamat datang, ${session.username}!`);
+            setTimeout(() => { window.location.href = '/'; }, 800);
+          }
+          return;
+        }
+
+        // Try user login
+        const userRes = await fetch('/api/user-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, deviceId: getBrowserDeviceId() })
+        });
+        const userResult = await userRes.json();
+
+        if (userResult.success) {
+          const session = userResult;
+          session._type = 'user';
+          localStorage.setItem('userSession', JSON.stringify(session));
+          showToast(`Selamat datang, ${session.username}!`);
+
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 800);
+          return;
+        }
+
+        // Both failed
+        uInput.classList.add('error');
+        pInput.classList.add('error');
+        errEl.querySelector('span').textContent = userResult.message || 'Username atau password salah.';
+        errEl.classList.add('show');
+
+      } catch (e) {
+        errEl.querySelector('span').textContent = 'Server tidak merespon. Coba lagi.';
+        errEl.classList.add('show');
+      } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i data-lucide="log-in"></i> Masuk ke Sistem';
+        initIcons();
+      }
+    }
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      document.getElementById('toastIcon').innerHTML = isError
+        ? '<i data-lucide="x-circle"></i>'
+        : '<i data-lucide="check-circle-2"></i>';
+      lucide.createIcons();
+      t.classList.toggle('error', isError);
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initIcons();
+      // If already logged in, redirect
+      const admin = localStorage.getItem('adminSession');
+      const user  = localStorage.getItem('userSession');
+      if (admin) {
+        const s = JSON.parse(admin);
+        const isRealAdmin = s.role === 'super_admin' || s.role === 'admin';
+        window.location.href = isRealAdmin ? '/dashboard' : '/';
+      } else if (user) {
+        window.location.href = '/';
+      }
+    });
+  </script>
+</body>
+</html>
