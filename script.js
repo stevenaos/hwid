@@ -224,7 +224,6 @@ async function doLogin() {
       currentUserSession = userResult;
       localStorage.setItem("userSession", JSON.stringify(userResult));
       showMainLayout(false, userResult.username, roleLabel);
-      {
       const setEl2 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
       setEl2("memberAvatar", userResult.username.charAt(0).toUpperCase());
       setEl2("memberName", userResult.username);
