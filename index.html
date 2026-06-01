@@ -573,7 +573,8 @@
       .sidebar .nav-link span, .sidebar .nav-link > *:not(svg):not(i) { opacity: 1 !important; width: auto !important; }
       .main-content { margin-left: 0 !important; padding: 70px 24px 32px; }
       .stats-grid { grid-template-columns:1fr 1fr; }
-      .sidebar-overlay { display: block; }
+      .sidebar-overlay { display: block; pointer-events: none; }
+      .sidebar-overlay.show { pointer-events: auto; }
     }
 
     /* ===== TABLE ACTION CELL ===== */
@@ -1041,6 +1042,7 @@
           <button class="tbl-btn tbl-btn-blue active" id="editTab-info" onclick="switchEditUserTab('info')" style="width:auto;padding:8px 14px;font-size:12.5px;font-weight:700;border-radius:9px;display:flex;align-items:center;gap:6px;flex:1;justify-content:center;"><i data-lucide="user"></i> Username</button>
           <button class="tbl-btn tbl-btn-amber" id="editTab-email" onclick="switchEditUserTab('email')" style="width:auto;padding:8px 14px;font-size:12.5px;font-weight:700;border-radius:9px;display:flex;align-items:center;gap:6px;flex:1;justify-content:center;"><i data-lucide="mail"></i> Email</button>
           <button class="tbl-btn tbl-btn-green" id="editTab-password" onclick="switchEditUserTab('password')" style="width:auto;padding:8px 14px;font-size:12.5px;font-weight:700;border-radius:9px;display:flex;align-items:center;gap:6px;flex:1;justify-content:center;"><i data-lucide="lock"></i> Password</button>
+          <button class="tbl-btn" id="editTab-role" onclick="switchEditUserTab('role')" style="width:auto;padding:8px 14px;font-size:12.5px;font-weight:700;border-radius:9px;display:flex;align-items:center;gap:6px;flex:1;justify-content:center;background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.2);color:#a78bfa;"><i data-lucide="shield"></i> Rank</button>
         </div>
         <input type="hidden" id="editUserUsername" />
         <div id="editUserPanel-info">
@@ -1061,6 +1063,15 @@
             <div class="pw-input-wrap">
               <input type="password" id="editUserNewPassword" class="pw-input" placeholder="Password baru..." />
               <button class="pw-toggle" onclick="togglePw('editUserNewPassword',this)" type="button"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+        </div>
+        <div id="editUserPanel-role" style="display:none;">
+          <div class="pw-field-group">
+            <label class="pw-label">Rank / Peran Pengguna</label>
+            <div class="role-select-group" style="grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
+              <label class="role-option" id="editRoleOptAdmin"><input type="radio" name="editUserRole" value="admin" onchange="selectRole(this)" /><div class="role-option-inner"><div class="role-icon" style="background:rgba(99,179,237,0.12);color:var(--accent);"><i data-lucide="shield"></i></div><div><strong>Pengelola</strong><span>Akses lebih</span></div></div></label>
+              <label class="role-option selected" id="editRoleOptUser"><input type="radio" name="editUserRole" value="user" checked onchange="selectRole(this)" /><div class="role-option-inner"><div class="role-icon" style="background:rgba(104,211,145,0.12);color:var(--green);"><i data-lucide="user"></i></div><div><strong>Anggota</strong><span>Akses standar</span></div></div></label>
             </div>
           </div>
         </div>
