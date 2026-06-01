@@ -25,29 +25,29 @@ function showLogin(type) { showPortal(); }
 function buildOwnerNav() {
   return `
     <div class="nav-section-label">Menu</div>
-    <a class="nav-link" href="/"><i data-lucide="home"></i> Home</a>
-    <div class="nav-link active" onclick="showPage('dashboard',this)"><i data-lucide="layout-dashboard"></i> Dashboard</div>
-    <div class="nav-link" onclick="showPage('users',this)"><i data-lucide="users"></i> Anggota</div>
-    <div class="nav-link" onclick="showPage('activity',this)"><i data-lucide="clipboard-list"></i> Riwayat Aktivitas</div>
-    <div class="nav-link" onclick="showPage('broadcast',this)"><i data-lucide="megaphone"></i> Broadcast & Versi</div>
+    <a class="nav-link" href="/"><i data-lucide="home"></i> <span>Home</span></a>
+    <div class="nav-link active" onclick="showPage('dashboard',this);closeSidebar()"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></div>
+    <div class="nav-link" onclick="showPage('users',this);closeSidebar()"><i data-lucide="users"></i> <span>Anggota</span></div>
+    <div class="nav-link" onclick="showPage('activity',this);closeSidebar()"><i data-lucide="clipboard-list"></i> <span>Riwayat Aktivitas</span></div>
+    <div class="nav-link" onclick="showPage('broadcast',this);closeSidebar()"><i data-lucide="megaphone"></i> <span>Broadcast & Versi</span></div>
     <div class="nav-section-label">Lainnya</div>
-    <a class="nav-link" href="/shop"><i data-lucide="key-round"></i> Beli Key</a>
-    <a class="nav-link" href="/download"><i data-lucide="download"></i> Download Apps</a>
+    <a class="nav-link" href="/shop"><i data-lucide="key-round"></i> <span>Beli Key</span></a>
+    <a class="nav-link" href="/download"><i data-lucide="download"></i> <span>Download Apps</span></a>
     <div class="nav-section-label">Pengaturan</div>
-    <div class="nav-link" onclick="showPage('jsonview',this)"><i data-lucide="file-json"></i> Konfigurasi</div>
+    <div class="nav-link" onclick="showPage('jsonview',this);closeSidebar()"><i data-lucide="file-json"></i> <span>Konfigurasi</span></div>
   `;
 }
 
 function buildMemberNav() {
   return `
     <div class="nav-section-label">Menu</div>
-    <a class="nav-link" href="/"><i data-lucide="home"></i> Home</a>
-    <div class="nav-link active" onclick="showPage('member',this)"><i data-lucide="layout-dashboard"></i> Dashboard</div>
-    <div class="nav-link" onclick="showPage('member-profile',this)"><i data-lucide="user-round"></i> Informasi Profil</div>
-    <div class="nav-link" onclick="showPage('member-log',this)"><i data-lucide="clipboard-list"></i> Log Aktivitas Saya</div>
+    <a class="nav-link" href="/"><i data-lucide="home"></i> <span>Home</span></a>
+    <div class="nav-link active" onclick="showPage('member',this);closeSidebar()"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></div>
+    <div class="nav-link" onclick="showPage('member-profile',this);closeSidebar()"><i data-lucide="user-round"></i> <span>Informasi Profil</span></div>
+    <div class="nav-link" onclick="showPage('member-log',this);closeSidebar()"><i data-lucide="clipboard-list"></i> <span>Log Aktivitas Saya</span></div>
     <div class="nav-section-label">Lainnya</div>
-    <a class="nav-link" href="/shop"><i data-lucide="key-round"></i> Beli Key</a>
-    <a class="nav-link" href="/download"><i data-lucide="download"></i> Install Aplikasi</a>
+    <a class="nav-link" href="/shop"><i data-lucide="key-round"></i> <span>Beli Key</span></a>
+    <a class="nav-link" href="/download"><i data-lucide="download"></i> <span>Install Aplikasi</span></a>
   `;
 }
 
@@ -219,10 +219,17 @@ async function doLogin() {
     const userResult = await userResponse.json();
 
     if (userResult.success) {
-      currentUserSession = userResult;
-      localStorage.setItem("userSession", JSON.stringify(userResult));
-      showMainLayout(false, userResult.username,
-        userResult.role === "admin" ? "Pengelola" : "Anggota");
+      // User normal (bukan super_admin/admin dari DB) → user dashboard
+      if (userResult.role === 'super_admin' || userResult.role === 'admin') {
+        // Akun DB dengan role admin → tetap user portal, bukan owner panel
+        currentUserSession = userResult;
+        localStorage.setItem("userSession", JSON.stringify(userResult));
+        showMainLayout(false, userResult.username, "Pengelola");
+      } else {
+        currentUserSession = userResult;
+        localStorage.setItem("userSession", JSON.stringify(userResult));
+        showMainLayout(false, userResult.username, "Anggota");
+      }
       const setEl2 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
       setEl2("memberAvatar", userResult.username.charAt(0).toUpperCase());
       setEl2("memberName", userResult.username);
@@ -456,11 +463,24 @@ async function renderJSON() {
 
 
 // ===== SIDEBAR TOGGLE =====
-let sidebarCollapsed = false;
 function toggleSidebar() {
-  const layout = document.getElementById("mainLayout");
-  sidebarCollapsed = !sidebarCollapsed;
-  if (layout) layout.classList.toggle("sidebar-collapsed", sidebarCollapsed);
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+  const isOpen = sidebar.classList.contains("open");
+  if (isOpen) {
+    sidebar.classList.remove("open");
+    if (overlay) overlay.classList.remove("show");
+  } else {
+    sidebar.classList.add("open");
+    if (overlay) overlay.classList.add("show");
+  }
+}
+
+function closeSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+  sidebar.classList.remove("open");
+  if (overlay) overlay.classList.remove("show");
 }
 
 // ===== FILL PROFILE PAGE =====
@@ -715,7 +735,7 @@ function renderUsersTable() {
     const expiresAt = user.key_expires_at
       ? new Date(user.key_expires_at)
       : null;
-    const isExpired = expiresAt && expiresAt <= now;
+    const isExpired = user.key_type !== "permanent" && expiresAt && expiresAt <= now;
     const keyDisplay = isExpired ? "Expired" : user.key ? user.key : "—";
     const keyColor = isExpired
       ? "badge-orange"

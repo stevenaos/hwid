@@ -47,21 +47,46 @@
     /* ===== LAYOUT ===== */
     .layout { display:flex; min-height:100vh; position:relative; z-index:1; }
 
-    /* ===== SIDEBAR (copy exact dari home.html) ===== */
+    /* ===== SIDEBAR (hover system) ===== */
+    :root {
+      --sidebar-w: 260px;
+      --sidebar-collapsed-w: 64px;
+    }
     .sidebar {
-      width:var(--sidebar-w);
-      background:rgba(6,11,20,0.95);
+      width: var(--sidebar-w);
+      background:rgba(6,11,20,0.97);
       backdrop-filter:blur(20px);
       border-right:1px solid var(--border);
       display:flex; flex-direction:column;
       padding:0; flex-shrink:0;
       position:fixed; left:0; top:0; bottom:0;
-      z-index:100; transition:transform 0.3s ease;
+      z-index:100;
+      transition: width 0.28s cubic-bezier(0.4,0,0.2,1), transform 0.3s ease;
+      overflow: hidden;
     }
+
+    /* Desktop: collapsed by default, expand on hover */
+    @media (min-width: 901px) {
+      .sidebar { width: var(--sidebar-collapsed-w); }
+      .sidebar:hover { width: var(--sidebar-w); }
+      .sidebar .brand-text { opacity: 0; width: 0; overflow: hidden; transition: opacity 0.2s, width 0.28s; white-space: nowrap; }
+      .sidebar:hover .brand-text { opacity: 1; width: auto; }
+      .sidebar .nav-section-label { opacity: 0; overflow: hidden; height: 0; margin: 0; padding: 0; transition: opacity 0.2s, height 0.28s; }
+      .sidebar:hover .nav-section-label { opacity: 1; height: auto; margin: 0 0 6px; margin-top: 12px; padding: 0 12px; }
+      .sidebar .nav-link span, .sidebar .nav-link > *:not(svg):not(i) { opacity: 0; width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s, width 0.28s; display: inline-block; }
+      .sidebar:hover .nav-link span, .sidebar:hover .nav-link > *:not(svg):not(i) { opacity: 1; width: auto; }
+      .sidebar .user-pill-info, .sidebar .user-pill-logout { opacity: 0; width: 0; overflow: hidden; transition: opacity 0.2s, width 0.28s; }
+      .sidebar:hover .user-pill-info, .sidebar:hover .user-pill-logout { opacity: 1; width: auto; }
+      .sidebar .nav-link { justify-content: flex-start; }
+      .main-content { margin-left: var(--sidebar-collapsed-w); transition: margin-left 0.28s; }
+    }
+
     .sidebar-brand {
-      padding:28px 24px 24px;
+      padding:20px 12px 20px;
       border-bottom:1px solid var(--border);
       display:flex; align-items:center; gap:12px;
+      min-height: 80px;
+      overflow: hidden;
     }
     .brand-icon {
       width:42px; height:42px; border-radius:12px;
@@ -539,10 +564,17 @@
     .key-expiry-warning-text span { font-size:12px; font-weight:500; opacity:0.8; }
 
     /* ===== SIDEBAR TOGGLE ===== */
-
-    .layout.sidebar-collapsed .sidebar { transform:translateX(-100%); }
-    .layout.sidebar-collapsed .main-content { margin-left:0; }
-    .sidebar, .main-content { transition:transform 0.3s ease, margin-left 0.3s ease; }
+    /* Mobile: sidebar hidden by default, hamburger shows/hides it */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); width: var(--sidebar-w) !important; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar .brand-text, .sidebar .nav-section-label,
+      .sidebar .user-pill-info, .sidebar .user-pill-logout { opacity: 1 !important; width: auto !important; height: auto !important; }
+      .sidebar .nav-link span, .sidebar .nav-link > *:not(svg):not(i) { opacity: 1 !important; width: auto !important; }
+      .main-content { margin-left: 0 !important; padding: 70px 24px 32px; }
+      .stats-grid { grid-template-columns:1fr 1fr; }
+      .sidebar-overlay { display: block; }
+    }
 
     /* ===== TABLE ACTION CELL ===== */
     .action-cell { display:flex; flex-wrap:wrap; gap:5px; align-items:center; max-width:160px; }
@@ -553,14 +585,17 @@
     ::-webkit-scrollbar-thumb { background:rgba(99,179,237,0.2); border-radius:8px; }
     ::-webkit-scrollbar-thumb:hover { background:rgba(99,179,237,0.35); }
 
-    /* ===== RESPONSIVE ===== */
-    @media (max-width:900px) {
-      .sidebar { transform:translateX(-100%); }
-      .sidebar.open { transform:translateX(0); }
-      .main-content { margin-left:0; padding:70px 24px 32px; }
-      .stats-grid { grid-template-columns:1fr 1fr; }
+    /* Sidebar overlay for mobile */
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+      backdrop-filter: blur(2px);
     }
-    @media (max-width:600px) {
+    .sidebar-overlay.show { display: block; }
+
+    @media (max-width: 600px) {
       .stats-grid { grid-template-columns:1fr; }
       .member-info-grid { grid-template-columns:1fr; }
     }
@@ -574,6 +609,9 @@
   <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
     <i data-lucide="menu"></i>
   </button>
+
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
   <!-- ========== LOGIN SCREEN ========== -->
   <div id="loginScreen">
@@ -812,10 +850,6 @@
           <div class="pw-field-group" style="margin-top:16px;">
             <label class="pw-label">URL Download</label>
             <input type="text" id="versionDownloadUrl" class="pw-input" placeholder="https://..." />
-          </div>
-          <div class="pw-field-group">
-            <label class="pw-label">Catatan Rilis</label>
-            <textarea id="versionNotes" class="pw-textarea" placeholder="Apa yang baru di versi ini..."></textarea>
           </div>
           <div class="pw-field-group">
             <label class="pw-label">Mode Update</label>
