@@ -687,6 +687,7 @@ app.post("/api/create-user", async (req, res) => {
     if (createKey) {
       user.key = generateKey();
       user.key_type = keyType;
+      user.key_expires_at = null; // reset
       
       if (keyType === "hourly") { 
         user.key_expires_at = new Date( 
@@ -771,6 +772,9 @@ app.put("/api/update-user-key/:username", async (req, res) => {
     user.key_type = keyType;
     user.max_devices = parseInt(maxDevices) || 1;
     
+    // Reset expiry first
+    user.key_expires_at = null;
+
     if (keyType === "hourly") {
       user.key_expires_at = new Date(
         Date.now() + 1 * 60 * 60 * 1000,
