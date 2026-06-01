@@ -729,6 +729,45 @@ app.post("/api/create-user", async (req, res) => {
   }
 });
 
+// ================= EDIT USER =================
+app.post("/api/edit-user", async (req, res) => {
+  try {
+    const { username, newUsername, newEmail, newPassword, newRole } = req.body;
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ success: false, message: "User tidak ditemukan." });
+
+    if (newUsername !== undefined) {
+      if (!newUsername) return res.status(400).json({ success: false, message: "Username tidak boleh kosong." });
+      const exists = await User.findOne({ username: newUsername });
+      if (exists && exists.username !== username) return res.status(409).json({ success: false, message: "Username sudah dipakai." });
+      user.username = newUsername;
+      await pushActivityLog("Edit User", `Username '${username}' → '${newUsername}'.`, "#a78bfa");
+    }
+    if (newEmail !== undefined) {
+      if (!newEmail) return res.status(400).json({ success: false, message: "Email tidak boleh kosong." });
+      user.email = newEmail;
+      await pushActivityLog("Edit User", `Email user '${username}' diubah.`, "#a78bfa");
+    }
+    if (newPassword !== undefined) {
+      if (!newPassword) return res.status(400).json({ success: false, message: "Password tidak boleh kosong." });
+      user.password = newPassword;
+      await pushActivityLog("Edit User", `Password user '${username}' diubah.`, "#a78bfa");
+    }
+    if (newRole !== undefined) {
+      const allowedRoles = ["user", "admin"];
+      if (!allowedRoles.includes(newRole)) return res.status(400).json({ success: false, message: "Role tidak valid." });
+      user.role = newRole;
+      await pushActivityLog("Edit User", `Role user '${username}' diubah ke '${newRole}'.`, "#a78bfa");
+    }
+
+    await user.save();
+    res.json({ success: true, message: "User berhasil diperbarui." });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+});
+
 // ================= DELETE USER =================
 app.delete("/api/delete-user/:username", async (req, res) => {
   try {
