@@ -196,7 +196,8 @@ async function doLogin() {
     });
     const result = await response.json();
 
-    if (result.success) {
+    if (result.success && result.user.role === 'super_admin') {
+      // Hanya super_admin (hardcoded) yang masuk owner panel
       currentUser = result.user;
       localStorage.setItem("adminSession", JSON.stringify(currentUser));
       showMainLayout(true, currentUser.username, "Pengelola");
@@ -210,7 +211,7 @@ async function doLogin() {
       return;
     }
 
-    // Try user login if admin failed
+    // Try user login (includes DB users with any role)
     const userResponse = await fetch("/api/user-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -219,17 +220,11 @@ async function doLogin() {
     const userResult = await userResponse.json();
 
     if (userResult.success) {
-      // User normal (bukan super_admin/admin dari DB) → user dashboard
-      if (userResult.role === 'super_admin' || userResult.role === 'admin') {
-        // Akun DB dengan role admin → tetap user portal, bukan owner panel
-        currentUserSession = userResult;
-        localStorage.setItem("userSession", JSON.stringify(userResult));
-        showMainLayout(false, userResult.username, "Pengelola");
-      } else {
-        currentUserSession = userResult;
-        localStorage.setItem("userSession", JSON.stringify(userResult));
-        showMainLayout(false, userResult.username, "Anggota");
-      }
+      const roleLabel = userResult.role === 'admin' ? 'Pengelola' : 'Anggota';
+      currentUserSession = userResult;
+      localStorage.setItem("userSession", JSON.stringify(userResult));
+      showMainLayout(false, userResult.username, roleLabel);
+      {
       const setEl2 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
       setEl2("memberAvatar", userResult.username.charAt(0).toUpperCase());
       setEl2("memberName", userResult.username);
@@ -552,13 +547,20 @@ async function doMemberChangePassword() {
 }
 
 // ===== EDIT USER MODAL =====
-function openEditUserModal(username, email) {
+function openEditUserModal(username, email, role) {
   document.getElementById("editUserModal").classList.add("show");
   document.getElementById("editUserUsername").value = username;
   document.getElementById("editUserTitle").textContent = username;
   document.getElementById("editUserNewUsername").value = username;
   document.getElementById("editUserNewEmail").value = email || "";
   document.getElementById("editUserNewPassword").value = "";
+  // Set role radio
+  const currentRole = role || "user";
+  document.querySelectorAll('input[name="editUserRole"]').forEach(r => {
+    r.checked = r.value === currentRole;
+    const label = r.closest('.role-option');
+    if (label) label.classList.toggle('selected', r.value === currentRole);
+  });
   switchEditUserTab("info");
   initIcons();
 }
@@ -568,12 +570,20 @@ function closeEditUserModal() {
 }
 
 function switchEditUserTab(tab) {
-  ["info","email","password"].forEach(t => {
+  ["info","email","password","role"].forEach(t => {
     const btn = document.getElementById("editTab-" + t);
     const panel = document.getElementById("editUserPanel-" + t);
     const isActive = t === tab;
     if (panel) panel.style.display = isActive ? "block" : "none";
-    if (btn) btn.style.opacity = isActive ? "1" : "0.5";
+    if (btn) {
+      if (isActive) {
+        btn.style.opacity = "1";
+        btn.style.borderWidth = "1.5px";
+      } else {
+        btn.style.opacity = "0.5";
+        btn.style.borderWidth = "1px";
+      }
+    }
   });
 }
 
@@ -587,6 +597,7 @@ async function handleEditUserForm() {
   let activeTab = "info";
   if (document.getElementById("editUserPanel-email").style.display !== "none") activeTab = "email";
   if (document.getElementById("editUserPanel-password").style.display !== "none") activeTab = "password";
+  if (document.getElementById("editUserPanel-role").style.display !== "none") activeTab = "role";
 
   let payload = { username };
   if (activeTab === "info") {
@@ -595,9 +606,13 @@ async function handleEditUserForm() {
   } else if (activeTab === "email") {
     if (!newEmail) { showToast("Email tidak boleh kosong!", true); return; }
     payload.newEmail = newEmail;
-  } else {
+  } else if (activeTab === "password") {
     if (!newPassword) { showToast("Password tidak boleh kosong!", true); return; }
     payload.newPassword = newPassword;
+  } else if (activeTab === "role") {
+    const roleRadio = document.querySelector('input[name="editUserRole"]:checked');
+    if (!roleRadio) { showToast("Pilih rank terlebih dahulu!", true); return; }
+    payload.newRole = roleRadio.value;
   }
 
   try {
@@ -762,7 +777,7 @@ function renderUsersTable() {
           <button class="tbl-btn tbl-btn-green" onclick='openEditKeyModal(${JSON.stringify(user.username)}, ${JSON.stringify(user.key)}, ${user.maxDevices})' title="Ubah Kunci"><i data-lucide="key"></i></button>
           <button class="tbl-btn tbl-btn-blue" onclick="openResetDeviceModal('${user.username}')" title="Atur Ulang Perangkat"><i data-lucide="refresh-cw"></i></button>
           <button class="tbl-btn tbl-btn-amber" onclick="toggleBlacklist('${user.username}')" title="Blokir Akses"><i data-lucide="shield-off"></i></button>
-          <button class="tbl-btn" onclick='openEditUserModal(${JSON.stringify(user.username)}, ${JSON.stringify(user.email||"")})' title="Edit Pengguna" style="background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.2);color:#a78bfa;"><i data-lucide="user-pen"></i></button>
+          <button class="tbl-btn" onclick='openEditUserModal(${JSON.stringify(user.username)}, ${JSON.stringify(user.email||"")}, ${JSON.stringify(user.role||"user")})' title="Edit Pengguna" style="background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.2);color:#a78bfa;"><i data-lucide="user-pen"></i></button>
           ${canDelete ? `<button class="tbl-btn tbl-btn-red" onclick="deleteUser('${user.username}')" title="Hapus Akun"><i data-lucide="trash-2"></i></button>` : ""}
         </div>
       </td>
