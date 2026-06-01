@@ -120,7 +120,7 @@ const HARDCODED_ADMIN = {
 // ================= HELPERS =================
 function generateKey() {
   const prefix = "STV";
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ1234567890";
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
   let body = "";
   for (let i = 0; i < 12; i++) {
     body += chars[Math.floor(Math.random() * chars.length)];
