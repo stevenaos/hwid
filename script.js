@@ -1285,10 +1285,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (savedAdmin) {
     currentUser = JSON.parse(savedAdmin);
-    showMainLayout(true, currentUser.username, "Pengelola");
-    const wn = document.getElementById("welcomeName");
-    if (wn) wn.textContent = currentUser.username;
-    renderJSON();
+    // Hanya izinkan masuk admin panel jika benar-benar super_admin
+    if (currentUser.role !== "super_admin") {
+      localStorage.removeItem("adminSession");
+      currentUser = null;
+      showPortal();
+    } else {
+      showMainLayout(true, currentUser.username, "Pengelola");
+      const wn = document.getElementById("welcomeName");
+      if (wn) wn.textContent = currentUser.username;
+      renderJSON();
+    }
   } else if (savedUser) {
     currentUserSession = JSON.parse(savedUser);
     showMainLayout(false, currentUserSession.username,
