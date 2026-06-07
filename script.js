@@ -26,7 +26,7 @@ function buildOwnerNav() {
   return `
     <div class="nav-section-label">Menu</div>
     <a class="nav-link" href="/"><i data-lucide="home"></i> <span>Home</span></a>
-    <div class="nav-link active" onclick="showPage('dashboard',this)"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></div>
+    <div class="nav-link active" onclick="showPage('dashboard',this)"><i data-lucide="layout-dashboard"></i> <span>Dashboard  <span class="badge-new">OPEN</span></span></div>
     <div class="nav-link" onclick="showPage('users',this)"><i data-lucide="users"></i> <span>Anggota</span></div>
     <div class="nav-link" onclick="showPage('activity',this)"><i data-lucide="clipboard-list"></i> <span>Riwayat Aktivitas</span></div>
     <div class="nav-link" onclick="showPage('broadcast',this)"><i data-lucide="megaphone"></i> <span>Broadcast & Versi</span></div>
@@ -42,7 +42,7 @@ function buildMemberNav() {
   return `
     <div class="nav-section-label">Menu</div>
     <a class="nav-link" href="/"><i data-lucide="home"></i> <span>Home</span></a>
-    <div class="nav-link active" onclick="showPage('member',this)"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></div>
+    <div class="nav-link active" onclick="showPage('member',this)"><i data-lucide="layout-dashboard"></i> <span>Dashboard  <span class="badge-new">OPEN</span></span></div>
     <div class="nav-link" onclick="showPage('member-profile',this)"><i data-lucide="user-round"></i> <span>Informasi Profil</span></div>
     <div class="nav-link" onclick="showPage('member-log',this)"><i data-lucide="clipboard-list"></i> <span>Log Aktivitas Saya</span></div>
     <div class="nav-section-label">Lainnya</div>
