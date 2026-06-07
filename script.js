@@ -26,7 +26,7 @@ function buildOwnerNav() {
   return `
     <div class="nav-section-label">Menu</div>
     <a class="nav-link" href="/"><i data-lucide="home"></i> <span>Home</span></a>
-    <div class="nav-link active" onclick="showPage('dashboard',this)"><i data-lucide="layout-dashboard"></i> <span>Dashboard  <span class="badge-new">OPEN</span></span></div>
+    <div class="nav-link active" onclick="showPage('dashboard',this)"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></div>
     <div class="nav-link" onclick="showPage('users',this)"><i data-lucide="users"></i> <span>Anggota</span></div>
     <div class="nav-link" onclick="showPage('activity',this)"><i data-lucide="clipboard-list"></i> <span>Riwayat Aktivitas</span></div>
     <div class="nav-link" onclick="showPage('broadcast',this)"><i data-lucide="megaphone"></i> <span>Broadcast & Versi</span></div>
@@ -42,7 +42,7 @@ function buildMemberNav() {
   return `
     <div class="nav-section-label">Menu</div>
     <a class="nav-link" href="/"><i data-lucide="home"></i> <span>Home</span></a>
-    <div class="nav-link active" onclick="showPage('member',this)"><i data-lucide="layout-dashboard"></i> <span>Dashboard  <span class="badge-new">OPEN</span></span></div>
+    <div class="nav-link active" onclick="showPage('member',this)"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></div>
     <div class="nav-link" onclick="showPage('member-profile',this)"><i data-lucide="user-round"></i> <span>Informasi Profil</span></div>
     <div class="nav-link" onclick="showPage('member-log',this)"><i data-lucide="clipboard-list"></i> <span>Log Aktivitas Saya</span></div>
     <div class="nav-section-label">Lainnya</div>
@@ -215,7 +215,7 @@ async function doLogin() {
     const userResponse = await fetch("/api/user-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: user, password: pass }),
+      body: JSON.stringify({ username: user, password: pass, deviceId: getBrowserDeviceId() }),
     });
     const userResult = await userResponse.json();
 
@@ -337,6 +337,7 @@ async function doUserLogin() {
       body: JSON.stringify({
         username: user,
         password: pass,
+        deviceId: getBrowserDeviceId(),
       }),
     });
     const result = await response.json();
@@ -737,7 +738,7 @@ function renderUsersTable() {
         ? "badge-green"
         : "badge-blue";
     const keyTypeLabel = user.key_type
-      ? `<div class="key-meta">${user.key_type.toUpperCase()}${expiresAt ? ` · ${formatDate(user.key_expires_at)}` : ""}</div>`
+      ? `<div class="key-meta">${user.key_type === "custom" ? "CUSTOM" : user.key_type.toUpperCase()}${expiresAt ? ` · ${formatDate(user.key_expires_at)}` : ""}</div>`
       : "";
     const canDelete = user.role !== "super_admin";
 
@@ -818,11 +819,24 @@ async function handleEditKeyForm() {
     return;
   }
 
+  // Validate custom expiry
+  if (keyType === "custom") {
+    if (!customExpiry) {
+      showToast("Pilih tanggal/jam expired untuk tipe Custom!", true);
+      return;
+    }
+    const parsedDate = new Date(customExpiry);
+    if (isNaN(parsedDate.getTime()) || parsedDate <= new Date()) {
+      showToast("Tanggal expired tidak valid atau sudah lewat!", true);
+      return;
+    }
+  }
+
   try {
     const res = await fetch(`/api/update-user-key/${username}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ newKey, maxDevices, keyType, customExpiry }),
+      body: JSON.stringify({ newKey, maxDevices, keyType, customExpiry: customExpiry || null }),
     });
     const result = await res.json();
     if (result.success) {
@@ -1142,10 +1156,48 @@ async function handleCreateUserForm() {
   }
 }
 
-// checkUserKey removed — /api/key-check is for Android key-login flow, not web session
+async function checkUserKey() {
+  try {
+    const data = JSON.parse(localStorage.getItem("userSession"));
+
+    if (!data || !data.key) {
+      return;
+    }
+
+    const res = await fetch("/api/key-check", {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+        key: data.key,
+
+        deviceId: getBrowserDeviceId(),
+      }),
+    });
+
+    const result = await res.json();
+
+    if (!result.success) {
+      localStorage.removeItem("userSession");
+
+      currentUserSession = null;
+
+      showToast("Akses dicabut", true);
+
+      location.href = "/index.html";
+    }
+  } catch {}
+}
+
+setInterval(checkUserKey, 500);
 
 document.addEventListener("visibilitychange", () => {
-  // no-op for web sessions
+  if (!document.hidden) {
+    checkUserKey();
+  }
 });
 
 // ===== LOG =====
@@ -1280,7 +1332,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const res = await fetch(`/api/user-status/${currentUserSession.username}`);
     const status = await res.json();
 
-    if (!status.success || status.isBlacklisted) {
+    const deviceAllowed =
+      !status.allowed_devices ||
+      status.allowed_devices.length === 0 ||
+      status.allowed_devices.includes(getBrowserDeviceId());
+
+    if (!status.success || status.isBlacklisted || status.key !== currentUserSession.key || !deviceAllowed) {
       await doUserLogout();
       showToast("Sesi Anda telah berakhir. Silakan masuk kembali.", true);
     }

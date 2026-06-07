@@ -241,13 +241,15 @@ app.post("/api/user-login", async (req, res) => {
     // ================= CREATE SESSION =================
     const token = generateSessionToken();
 
-    // Delete any existing web sessions for this user (no deviceId binding)
-    await Session.deleteMany({ username, deviceId: null });
+    await Session.deleteMany({
+      username,
+      deviceId,
+    });
 
     await Session.create({
       username,
       token,
-      deviceId: null,
+      deviceId,
     });
 
     res.json({
@@ -516,7 +518,7 @@ app.post("/api/logout", async (req, res) => {
 // ================= CREATE USER =================
 app.post("/api/create-user", async (req, res) => {
   try {
-    const { email, username, password, role, createKey, keyType, maxDevices } =
+    const { email, username, password, role, createKey, keyType, maxDevices, customExpiry } =
       req.body;
 
     const checkUser = await User.findOne({
@@ -545,14 +547,13 @@ app.post("/api/create-user", async (req, res) => {
 
       if (keyType === "hourly") {
         user.key_expires_at = new Date(Date.now() + 1 * 60 * 60 * 1000);
-      }
-
-      if (keyType === "weekly") {
+      } else if (keyType === "weekly") {
         user.key_expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      }
-
-      if (keyType === "monthly") {
+      } else if (keyType === "monthly") {
         user.key_expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      } else if (keyType === "custom" && customExpiry) {
+        const parsed = new Date(customExpiry);
+        if (!isNaN(parsed.getTime())) user.key_expires_at = parsed;
       }
     }
 
@@ -673,7 +674,7 @@ app.delete("/api/delete-user/:username", async (req, res) => {
 // ================= UPDATE USER KEY =================
 app.put("/api/update-user-key/:username", async (req, res) => {
   try {
-    const { newKey, maxDevices, keyType } = req.body;
+    const { newKey, maxDevices, keyType, customExpiry } = req.body;
 
     const user = await User.findOne({
       username: req.params.username,
@@ -688,20 +689,17 @@ app.put("/api/update-user-key/:username", async (req, res) => {
     user.key = newKey;
     user.key_type = keyType;
     user.max_devices = parseInt(maxDevices) || 1;
-
-    // Reset expiry first
     user.key_expires_at = null;
 
     if (keyType === "hourly") {
       user.key_expires_at = new Date(Date.now() + 1 * 60 * 60 * 1000);
-    }
-
-    if (keyType === "weekly") {
+    } else if (keyType === "weekly") {
       user.key_expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    }
-
-    if (keyType === "monthly") {
+    } else if (keyType === "monthly") {
       user.key_expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    } else if (keyType === "custom" && customExpiry) {
+      const parsed = new Date(customExpiry);
+      if (!isNaN(parsed.getTime())) user.key_expires_at = parsed;
     }
 
     await user.save();
