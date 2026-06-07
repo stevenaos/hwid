@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cendekia Mod — Ruang Kendali</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
+  <link rel="stylesheet" href="../static/sidebar.css" />
+  <link rel="stylesheet" href="../static/index.css" />
+</head>
+<body>
+  <div class="ambient"></div>
+  <div class="grid-bg"></div>
+
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- ========== LOGIN SCREEN ========== -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-brand-icon"><i data-lucide="layers"></i></div>
+        <div>
+          <span class="login-brand-name">Cendekia Mod</span>
+          <span class="login-brand-sub">Ruang Kendali</span>
+        </div>
+      </div>
+      <h1 class="login-heading">Selamat Datang</h1>
+      <p class="login-sub">Masuk dengan kredensial Anda — sistem mendeteksi peran Anda secara otomatis.</p>
+      <div class="hint-box">
+        <i data-lucide="info"></i>
+        <span>Satu pintu masuk untuk semua peran. Tidak perlu memilih jenis akun secara manual.</span>
+      </div>
+      <div class="fl-group">
+        <label class="fl-label">Nama Pengguna</label>
+        <div class="fl-wrap">
+          <span class="fl-icon"><i data-lucide="user"></i></span>
+          <input type="text" id="loginUsername" class="fl-input" placeholder="Masukkan nama pengguna..." autocomplete="username" onkeydown="if(event.key==='Enter') doLogin();" />
+        </div>
+      </div>
+      <div class="fl-group">
+        <label class="fl-label">Kata Sandi</label>
+        <div class="fl-wrap">
+          <span class="fl-icon"><i data-lucide="lock"></i></span>
+          <input type="password" id="loginPassword" class="fl-input" placeholder="Masukkan kata sandi..." autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin();" />
+          <button class="fl-pw-toggle" onclick="togglePw('loginPassword',this)" type="button"><i data-lucide="eye"></i></button>
+        </div>
+      </div>
+      <div class="err-msg" id="loginError"><i data-lucide="x-circle"></i><span>Nama pengguna atau kata sandi tidak tepat.</span></div>
+      <button class="btn-masuk" id="loginBtn" onclick="doLogin()">
+        <i data-lucide="log-in"></i> Masuk ke Cendekia Mod
+      </button>
+      <a href="/" class="back-to-home"><i data-lucide="home"></i> Kembali ke Beranda</a>
+      <div class="card-footer">CENDEKIA MOD · v2.4.1 · ENKRIPSI AKTIF</div>
+    </div>
+  </div>
+
+  <!-- hidden compat inputs -->
+  <input type="hidden" id="userLoginUsername" />
+  <input type="hidden" id="userLoginPassword" />
+  <div class="err-msg" id="userLoginError" style="display:none;"><i data-lucide="x-circle"></i><span></span></div>
+
+  <!-- ========== LAYOUT UTAMA (sidebar + konten) ========== -->
+  <div class="layout" id="mainLayout" style="display:none;">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="/" class="header-logo">
+          <div class="brand-icon"><i data-lucide="layers"></i></div>
+          <div class="brand-text">
+            <strong>Cendekia Mod</strong>
+            <span>Ruang Kendali</span>
+          </div>
+        </a>
+        <button class="toggler sidebar-toggler" id="sidebarToggler">
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+        <button class="toggler menu-toggler" id="menuToggler">
+          <span class="material-symbols-rounded">menu</span>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul class="nav-list primary-nav" id="sidebarNav">
+          <!-- JS will inject nav links here -->
+        </ul>
+      </nav>
+
+      <div class="sidebar-bottom" id="sidebarBottom"></div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content" id="mainContent">
+
+      <!-- ===== OWNER: IKHTISAR ===== -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <h1>Ikhtisar Sistem</h1>
+          <p>Selamat datang kembali, <strong id="welcomeName" style="color:var(--text);">—</strong>. Berikut ringkasan terkini platform Anda.</p>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-icon"><i data-lucide="users"></i></div>
+            <div class="stat-card-value" id="statTotalUsers">—</div>
+            <div class="stat-card-label">Total Anggota</div>
+            <div class="stat-card-trend">↑ +12% bulan ini</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon"><i data-lucide="package"></i></div>
+            <div class="stat-card-value">548</div>
+            <div class="stat-card-label">Total Transaksi</div>
+            <div class="stat-card-trend">↑ +8% bulan ini</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon"><i data-lucide="banknote"></i></div>
+            <div class="stat-card-value">Rp 48jt</div>
+            <div class="stat-card-label">Pendapatan</div>
+            <div class="stat-card-trend">↑ +23% bulan ini</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon"><i data-lucide="server"></i></div>
+            <div class="stat-card-value">99.8%</div>
+            <div class="stat-card-label">Kestabilan Layanan</div>
+            <div class="stat-card-trend" style="color:var(--accent);">● Beroperasi</div>
+          </div>
+        </div>
+        <div class="panel-card">
+          <div class="panel-card-title"><i data-lucide="activity"></i> Aktivitas Terkini</div>
+          <div class="panel-card-sub">Rekam jejak aktivitas platform dalam 24 jam terakhir</div>
+          <div id="recentActivity"></div>
+        </div>
+      </div>
+
+      <!-- ===== OWNER: ANGGOTA ===== -->
+      <div class="page" id="page-users">
+        <div class="page-header">
+          <h1>Kelola Anggota</h1>
+          <p>Pantau, atur, dan kelola seluruh akun dalam platform</p>
+        </div>
+        <div class="panel-card">
+          <div class="panel-card-header-row" style="margin-bottom:0;">
+            <div>
+              <div class="panel-card-title"><i data-lucide="users"></i> Daftar Anggota</div>
+              <div class="panel-card-sub" id="userCountSub">Memuat data...</div>
+            </div>
+            <button class="btn-new-member" onclick="openCreateUserModal()">
+              <i data-lucide="user-plus"></i> Tambah Anggota
+            </button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>No.</th><th>Pengguna</th><th>Surel</th><th>Peran</th>
+                <th>Kunci Akses</th><th>Status</th><th>Bergabung</th><th>Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
+
+          <!-- Edit Key Modal -->
+          <div class="modal-overlay" id="editKeyModal" onclick="closeModalOutside(event)">
+            <div class="modal-card">
+              <div class="modal-header">
+                <div class="modal-title"><i data-lucide="key"></i> Ubah Kunci Akses</div>
+                <button class="modal-close" onclick="closeEditKeyModal()" type="button"><i data-lucide="x"></i></button>
+              </div>
+              <div class="modal-body">
+                <div class="pw-field-group">
+                  <label class="pw-label">Maks. Perangkat</label>
+                  <input type="number" id="editMaxDevicesInput" class="pw-input" min="1" max="10" />
+                </div>
+                <div class="pw-field-group">
+                  <label class="pw-label">Kunci Baru</label>
+                  <input type="text" id="editKeyInput" class="pw-input" placeholder="Masukkan kunci baru..." />
+                </div>
+                <div class="pw-field-group">
+                  <label class="pw-label">Durasi Kunci</label>
+                  <div class="role-select-group" style="grid-template-columns:1fr 1fr;gap:8px;">
+                    <label class="role-option selected"><input type="radio" name="editKeyType" value="permanent" checked onchange="selectEditKeyType(this)" /><div class="role-option-inner" style="padding:10px;"><div style="font-size:13px;font-weight:700;color:var(--text);">Permanen</div></div></label>
+                    <label class="role-option"><input type="radio" name="editKeyType" value="hourly" onchange="selectEditKeyType(this)" /><div class="role-option-inner" style="padding:10px;"><div style="font-size:13px;font-weight:700;color:var(--text);">Per Jam</div></div></label>
+                    <label class="role-option"><input type="radio" name="editKeyType" value="weekly" onchange="selectEditKeyType(this)" /><div class="role-option-inner" style="padding:10px;"><div style="font-size:13px;font-weight:700;color:var(--text);">Mingguan</div></div></label>
+                    <label class="role-option"><input type="radio" name="editKeyType" value="monthly" onchange="selectEditKeyType(this)" /><div class="role-option-inner" style="padding:10px;"><div style="font-size:13px;font-weight:700;color:var(--text);">Bulanan</div></div></label>
+                    <label class="role-option"><input type="radio" name="editKeyType" value="custom" onchange="selectEditKeyType(this)" /><div class="role-option-inner" style="padding:10px;"><div style="font-size:13px;font-weight:700;color:var(--text);">Kustom</div></div></label>
+                  </div>
+                </div>
+                <div class="pw-field-group" id="editCustomExpiryGroup" style="display:none;">
+                  <label class="pw-label">Tanggal Kadaluarsa</label>
+                  <input type="datetime-local" id="editCustomExpiryInput" class="pw-input" />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeEditKeyModal()" type="button"><i data-lucide="x"></i> Batal</button>
+                <button id="deleteKeyBtn" class="btn-danger" onclick="handleDeleteKey()" type="button" style="display:none;"><i data-lucide="trash-2"></i> Hapus Kunci</button>
+                <button class="btn-primary" onclick="handleEditKeyForm()" type="button"><i data-lucide="save"></i> Simpan</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== OWNER: RIWAYAT ===== -->
+      <div class="page" id="page-activity">
+        <div class="page-header">
+          <h1>Riwayat Aktivitas</h1>
+          <p>Rekam jejak seluruh kejadian dan interaksi dalam platform</p>
+        </div>
+        <div class="panel-card">
+          <div class="panel-card-title"><i data-lucide="clipboard-list"></i> Rekam Jejak Lengkap</div>
+          <div class="panel-card-sub">Diperbarui secara real-time</div>
+          <div id="fullActivityLog"></div>
+        </div>
+      </div>
+
+      <!-- ===== OWNER: BROADCAST ===== -->
+      <div class="page" id="page-broadcast">
+        <div class="page-header">
+          <h1>Broadcast & Versi</h1>
+          <p>Kelola pengumuman dan versi aplikasi yang ditampilkan ke pengguna</p>
+        </div>
+        <div class="version-panel">
+          <div class="version-panel-title"><i data-lucide="package"></i> Manajemen Versi Aplikasi</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+            <div class="version-current-display" style="margin-bottom:0;">
+              <div>
+                <div class="version-current-label">Versi Client Saat Ini</div>
+                <div class="version-current-val" id="currentVersionDisplay">—</div>
+              </div>
+            </div>
+            <div class="version-current-display" style="margin-bottom:0;background:rgba(99,179,237,0.07);border-color:rgba(99,179,237,0.18);">
+              <div>
+                <div class="version-current-label" style="color:var(--accent);">Versi Terbaru</div>
+                <div class="version-current-val" id="latestVersionDisplay">—</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="pw-field-group" style="margin-bottom:0;">
+              <label class="pw-label">Versi Client <span style="color:var(--red)">*</span></label>
+              <input type="text" id="versionCurrentInput" class="pw-input" placeholder="Contoh: 1.0.0" />
+              <div style="font-size:11px;color:var(--text-muted);margin-top:5px;">Versi yang sedang berjalan di halaman login</div>
+            </div>
+            <div class="pw-field-group" style="margin-bottom:0;">
+              <label class="pw-label">Versi Terbaru <span style="color:var(--red)">*</span></label>
+              <input type="text" id="versionLatestInput" class="pw-input" placeholder="Contoh: 1.0.1" />
+              <div style="font-size:11px;color:var(--text-muted);margin-top:5px;">User wajib punya versi ini untuk lanjut</div>
+            </div>
+          </div>
+          <div class="pw-field-group" style="margin-top:16px;">
+            <label class="pw-label">URL Download</label>
+            <input type="text" id="versionDownloadUrl" class="pw-input" placeholder="https://..." />
+          </div>
+          <div class="pw-field-group">
+            <label class="pw-label">Mode Update</label>
+            <div class="checkbox-wrap">
+              <label class="switch"><input type="checkbox" id="versionForceUpdate" checked /><span class="slider"></span></label>
+              <span class="checkbox-label">Force update — jika versi client ≠ versi terbaru, user wajib update.</span>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="handleSaveVersion()"><i data-lucide="save"></i> Simpan Versi</button>
+        </div>
+        <div class="panel-card" style="margin-top:0;">
+          <div class="panel-card-header-row" style="margin-bottom:16px;">
+            <div>
+              <div class="panel-card-title"><i data-lucide="megaphone"></i> Broadcast Pengumuman</div>
+              <div class="panel-card-sub">Pengumuman akan ditampilkan sebagai popup di halaman login pengguna</div>
+            </div>
+            <button class="btn-primary" onclick="openBroadcastModal()"><i data-lucide="plus"></i> Buat Broadcast</button>
+          </div>
+          <div class="broadcast-grid" id="broadcastGrid">
+            <div class="broadcast-empty"><i data-lucide="megaphone"></i><br/>Belum ada broadcast</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== OWNER: KONFIGURASI ===== -->
+      <div class="page" id="page-jsonview">
+        <div class="page-header">
+          <h1>Konfigurasi Platform</h1>
+          <p>Pengaturan dan data konfigurasi sistem yang sedang berjalan</p>
+        </div>
+        <div class="panel-card">
+          <div class="panel-card-title"><i data-lucide="file-json"></i> Berkas Konfigurasi</div>
+          <div class="panel-card-sub">Mencerminkan kondisi konfigurasi sistem saat ini</div>
+          <div class="json-preview" id="jsonPreview"></div>
+        </div>
+      </div>
+
+      <!-- ===== MEMBER: PROFIL & KUNCI ===== -->
+      <div class="page" id="page-member">
+        <div class="member-wrap">
+          <div class="panel-card">
+            <div class="member-topbar">
+              <div class="member-avatar" id="memberAvatar">C</div>
+              <div class="member-identity">
+                <div class="member-name" id="memberName">—</div>
+                <span class="member-badge"><i data-lucide="circle-check"></i> <span id="memberRole">Anggota</span></span>
+              </div>
+            </div>
+            <div class="member-info-grid">
+              <div class="info-tile">
+                <div class="info-tile-label"><i data-lucide="mail"></i> Surel</div>
+                <div class="info-tile-val" id="memberEmail">—</div>
+              </div>
+              <div class="info-tile">
+                <div class="info-tile-label"><i data-lucide="calendar"></i> Bergabung</div>
+                <div class="info-tile-val" id="memberJoined">—</div>
+              </div>
+            </div>
+            <div class="key-panel">
+              <div class="key-panel-heading"><i data-lucide="key-round"></i> Kunci Akses Anda</div>
+              <p class="key-hint">Kunci ini bersifat unik dan pribadi. Jangan bagikan kepada siapa pun.</p>
+              <div class="key-display">
+                <span class="key-val" id="memberKey">—</span>
+                <button class="key-copy" onclick="copyKey()" title="Salin kunci"><i data-lucide="copy"></i></button>
+              </div>
+              <div class="key-meta-row">
+                <div><strong>Tipe:</strong> <span id="memberKeyType">—</span></div>
+                <div><strong>Berlaku hingga:</strong> <span id="memberKeyExpiry">—</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MEMBER: INFORMASI PROFIL ===== -->
+      <div class="page" id="page-member-profile">
+        <div class="page-header">
+          <h1>Informasi Profil</h1>
+          <p>Detail akun dan kunci akses Anda</p>
+        </div>
+        <div class="profile-wrap">
+          <div class="profile-hero">
+            <div class="profile-avatar-lg" id="profileAvatarLg">C</div>
+            <div class="profile-hero-info">
+              <div class="profile-hero-name" id="profileNameHero">—</div>
+              <div class="profile-hero-badges">
+                <span class="member-badge"><i data-lucide="circle-check"></i> <span id="profileRoleHero">Anggota</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="panel-card" style="margin-bottom:14px;">
+            <div class="profile-section-title"><i data-lucide="info"></i> Data Akun</div>
+            <div class="profile-info-grid">
+              <div class="profile-tile">
+                <div class="profile-tile-label"><i data-lucide="user"></i> Username</div>
+                <div class="profile-tile-val" id="profileUsername">—</div>
+              </div>
+              <div class="profile-tile">
+                <div class="profile-tile-label"><i data-lucide="mail"></i> Email</div>
+                <div class="profile-tile-val" id="profileEmail">—</div>
+              </div>
+              <div class="profile-tile">
+                <div class="profile-tile-label"><i data-lucide="shield"></i> Peran</div>
+                <div class="profile-tile-val" id="profileRole">—</div>
+              </div>
+              <div class="profile-tile">
+                <div class="profile-tile-label"><i data-lucide="calendar"></i> Bergabung</div>
+                <div class="profile-tile-val" id="profileJoined">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel-card" style="margin-bottom:14px;">
+            <div class="profile-section-title"><i data-lucide="key-round"></i> Informasi Kunci Akses</div>
+            <div class="profile-key-box">
+              <div class="profile-key-label"><i data-lucide="key-round"></i> Kunci Akses Anda</div>
+              <div class="profile-key-val-row">
+                <span class="profile-key-val" id="profileKey">—</span>
+                <button class="profile-key-copy" onclick="copyKey()" title="Salin kunci"><i data-lucide="copy"></i></button>
+              </div>
+              <div class="profile-key-meta">
+                <div><strong>Tipe:</strong> <span id="profileKeyType">—</span></div>
+                <div><strong>Berlaku hingga:</strong> <span id="profileKeyExpiry">—</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel-card">
+            <div class="profile-section-title"><i data-lucide="lock"></i> Ganti Kata Sandi</div>
+            <div class="pw-field-group">
+              <label class="pw-label">Kata Sandi Lama</label>
+              <div class="pw-input-wrap">
+                <input type="password" id="memberOldPw" class="pw-input" placeholder="Kata sandi saat ini..." />
+                <button class="pw-toggle" onclick="togglePw('memberOldPw',this)" type="button"><i data-lucide="eye"></i></button>
+              </div>
+            </div>
+            <div class="pw-field-group">
+              <label class="pw-label">Kata Sandi Baru</label>
+              <div class="pw-input-wrap">
+                <input type="password" id="memberNewPw" class="pw-input" placeholder="Kata sandi baru..." />
+                <button class="pw-toggle" onclick="togglePw('memberNewPw',this)" type="button"><i data-lucide="eye"></i></button>
+              </div>
+            </div>
+            <div class="pw-field-group">
+              <label class="pw-label">Konfirmasi Kata Sandi Baru</label>
+              <div class="pw-input-wrap">
+                <input type="password" id="memberConfirmPw" class="pw-input" placeholder="Ulangi kata sandi baru..." />
+                <button class="pw-toggle" onclick="togglePw('memberConfirmPw',this)" type="button"><i data-lucide="eye"></i></button>
+              </div>
+            </div>
+            <button class="btn-primary" onclick="doMemberChangePassword()" style="width:100%;padding:13px;margin-top:4px;">
+              <i data-lucide="save"></i> Simpan Kata Sandi
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MEMBER: LOG AKTIVITAS ===== -->
+      <div class="page" id="page-member-log">
+        <div class="page-header">
+          <h1>Log Aktivitas Saya</h1>
+          <p>Riwayat aktivitas yang tercatat pada akun Anda</p>
+        </div>
+        <div class="panel-card" style="max-width:680px;">
+          <div class="panel-card-title"><i data-lucide="clipboard-list"></i> Riwayat Akun Saya</div>
+          <div class="panel-card-sub">Hanya menampilkan log yang berkaitan dengan akun Anda</div>
+          <div id="memberOwnLog"></div>
+        </div>
+      </div>
+
+    </div><!-- end main-content -->
+  </div><!-- end layout -->
+
+
+  <!-- ===== MODAL EDIT USER ===== -->
+  <div class="modal-overlay" id="editUserModal" onclick="closeModalOutside(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i data-lucide="user-pen"></i> Edit Pengguna: <span id="editUserTitle" style="color:var(--accent);margin-left:4px;">—</span></div>
+        <button class="modal-close" onclick="closeEditUserModal()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:6px;margin-bottom:18px;" id="editUserTabRow">
+          <button class="tbl-btn tbl-btn-blue active" id="editTab-info" onclick="switchEditUserTab('info')" style="width:auto;padding:8px 14px;font-size:12.5px;font-weight:700;border-radius:9px;display:flex;align-items:center;gap:6px;flex:1;justify-content:center;"><i data-lucide="user"></i> Username</button>
+          <button class="tbl-btn tbl-btn-amber" id="editTab-email" onclick="switchEditUserTab('email')" style="width:auto;padding:8px 14px;font-size:12.5px;font-weight:700;border-radius:9px;display:flex;align-items:center;gap:6px;flex:1;justify-content:center;"><i data-lucide="mail"></i> Email</button>
+          <button class="tbl-btn tbl-btn-green" id="editTab-password" onclick="switchEditUserTab('password')" style="width:auto;padding:8px 14px;font-size:12.5px;font-weight:700;border-radius:9px;display:flex;align-items:center;gap:6px;flex:1;justify-content:center;"><i data-lucide="lock"></i> Password</button>
+          <button class="tbl-btn" id="editTab-role" onclick="switchEditUserTab('role')" style="width:auto;padding:8px 14px;font-size:12.5px;font-weight:700;border-radius:9px;display:flex;align-items:center;gap:6px;flex:1;justify-content:center;background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.2);color:#a78bfa;"><i data-lucide="shield"></i> Rank</button>
+        </div>
+        <input type="hidden" id="editUserUsername" />
+        <div id="editUserPanel-info">
+          <div class="pw-field-group">
+            <label class="pw-label">Username Baru</label>
+            <input type="text" id="editUserNewUsername" class="pw-input" placeholder="Username baru..." />
+          </div>
+        </div>
+        <div id="editUserPanel-email" style="display:none;">
+          <div class="pw-field-group">
+            <label class="pw-label">Email Baru</label>
+            <input type="email" id="editUserNewEmail" class="pw-input" placeholder="Email baru..." />
+          </div>
+        </div>
+        <div id="editUserPanel-password" style="display:none;">
+          <div class="pw-field-group">
+            <label class="pw-label">Password Baru</label>
+            <div class="pw-input-wrap">
+              <input type="password" id="editUserNewPassword" class="pw-input" placeholder="Password baru..." />
+              <button class="pw-toggle" onclick="togglePw('editUserNewPassword',this)" type="button"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+        </div>
+        <div id="editUserPanel-role" style="display:none;">
+          <div class="pw-field-group">
+            <label class="pw-label">Rank / Peran Pengguna</label>
+            <div class="role-select-group" style="grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
+              <label class="role-option" id="editRoleOptAdmin"><input type="radio" name="editUserRole" value="admin" onchange="selectRole(this)" /><div class="role-option-inner"><div class="role-icon" style="background:rgba(99,179,237,0.12);color:var(--accent);"><i data-lucide="shield"></i></div><div><strong>Pengelola</strong><span>Akses lebih</span></div></div></label>
+              <label class="role-option selected" id="editRoleOptUser"><input type="radio" name="editUserRole" value="user" checked onchange="selectRole(this)" /><div class="role-option-inner"><div class="role-icon" style="background:rgba(104,211,145,0.12);color:var(--green);"><i data-lucide="user"></i></div><div><strong>Anggota</strong><span>Akses standar</span></div></div></label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeEditUserModal()"><i data-lucide="x"></i> Batal</button>
+        <button class="btn-primary" onclick="handleEditUserForm()"><i data-lucide="save"></i> Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL TAMBAH ANGGOTA ===== -->
+  <div class="modal-overlay" id="createUserModal" onclick="closeModalOutside(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i data-lucide="user-plus"></i> Tambah Anggota Baru</div>
+        <button class="modal-close" onclick="closeCreateUserModal()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="pw-field-group"><label class="pw-label">Surel <span style="color:var(--red)">*</span></label><input type="email" id="newEmail" class="pw-input" placeholder="contoh@surel.com" /></div>
+        <div class="pw-field-group"><label class="pw-label">Nama Pengguna <span style="color:var(--red)">*</span></label><input type="text" id="newUsername" class="pw-input" placeholder="Masukkan nama pengguna..." /></div>
+        <div class="pw-field-group">
+          <label class="pw-label">Kata Sandi <span style="color:var(--red)">*</span></label>
+          <div class="pw-input-wrap">
+            <input type="password" id="newUserPassword" class="pw-input" placeholder="Masukkan kata sandi..." />
+            <button class="pw-toggle" onclick="togglePw('newUserPassword',this)" type="button"><i data-lucide="eye"></i></button>
+          </div>
+        </div>
+        <div class="pw-field-group"><label class="pw-label">Maks. Perangkat <span style="color:var(--red)">*</span></label><input type="number" id="newMaxDevices" class="pw-input" value="1" min="1" max="10" /></div>
+        <div class="pw-field-group">
+          <label class="pw-label">Peran <span style="color:var(--red)">*</span></label>
+          <div class="role-select-group">
+            <label class="role-option" id="roleOptAdmin"><input type="radio" name="newRole" value="admin" onchange="selectRole(this)" /><div class="role-option-inner"><div class="role-icon" style="background:rgba(99,179,237,0.12);color:var(--accent);"><i data-lucide="shield"></i></div><div><strong>Pengelola</strong><span>Akses penuh sistem</span></div></div></label>
+            <label class="role-option selected" id="roleOptUser"><input type="radio" name="newRole" value="user" checked onchange="selectRole(this)" /><div class="role-option-inner"><div class="role-icon" style="background:rgba(104,211,145,0.12);color:var(--green);"><i data-lucide="user"></i></div><div><strong>Anggota</strong><span>Akses standar</span></div></div></label>
+          </div>
+        </div>
+        <div class="pw-field-group">
+          <label class="pw-label">Kunci Akses</label>
+          <div class="checkbox-wrap"><label class="switch"><input type="checkbox" id="newAutoKey" checked /><span class="slider"></span></label><span class="checkbox-label">Buat kunci akses otomatis saat akun dibuat.</span></div>
+        </div>
+        <div class="pw-field-group" id="keyTypeSection">
+          <label class="pw-label">Durasi Kunci</label>
+          <div class="role-select-group">
+            <label class="role-option selected" id="keyTypePermanent"><input type="radio" name="newKeyType" value="permanent" checked onchange="selectRole(this)" /><div class="role-option-inner"><div class="role-icon" style="background:rgba(246,173,85,0.12);color:var(--amber);"><i data-lucide="shield"></i></div><div><strong>Permanen</strong><span>Tanpa masa berlaku</span></div></div></label>
+            <label class="role-option" id="keyTypeHourly"><input type="radio" name="newKeyType" value="hourly" onchange="selectRole(this)" /><div class="role-option-inner"><div class="role-icon" style="background:rgba(167,139,250,0.12);color:#a78bfa;"><i data-lucide="timer"></i></div><div><strong>Per Jam</strong><span>Rp 5.000 / 1 jam</span></div></div></label>
+            <label class="role-option" id="keyTypeWeekly"><input type="radio" name="newKeyType" value="weekly" onchange="selectRole(this)" /><div class="role-option-inner"><div class="role-icon" style="background:rgba(104,211,145,0.12);color:var(--green);"><i data-lucide="clock"></i></div><div><strong>Mingguan</strong><span>Rp 26.000 / 7 hari</span></div></div></label>
+            <label class="role-option" id="keyTypeMonthly"><input type="radio" name="newKeyType" value="monthly" onchange="selectRole(this)" /><div class="role-option-inner"><div class="role-icon" style="background:rgba(99,179,237,0.12);color:var(--accent);"><i data-lucide="calendar"></i></div><div><strong>Bulanan</strong><span>Rp 46.000 / 30 hari</span></div></div></label>
+          </div>
+        </div>
+        <div class="modal-key-preview" id="modalKeyPreview"><div class="modal-key-label"><i data-lucide="key-round"></i> Kunci dibuat otomatis oleh sistem</div><div class="modal-key-note">Setiap anggota mendapatkan kunci unik saat akun pertama kali dibuat.</div></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeCreateUserModal()"><i data-lucide="x"></i> Batal</button>
+        <button class="btn-primary" onclick="handleCreateUserForm()"><i data-lucide="user-plus"></i> Tambahkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL RESET PERANGKAT ===== -->
+  <div class="modal-overlay" id="resetDeviceModal" onclick="closeModalOutside(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i data-lucide="refresh-cw"></i> Atur Ulang Perangkat</div>
+        <button class="modal-close" onclick="closeResetDeviceModal()" type="button"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="color:rgba(226,232,240,0.75);margin-bottom:10px;">Perangkat terdaftar milik <strong id="resetDeviceDisplayUsername"></strong></p>
+        <div class="device-list" id="deviceListContainer"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeResetDeviceModal()" type="button" style="margin-right:auto;">Tutup</button>
+        <button class="btn-secondary" onclick="handleConfirmResetDevice(true)" type="button" style="background:rgba(252,129,129,0.1);color:var(--red);border-color:rgba(252,129,129,0.2);"><i data-lucide="trash-2"></i> Hapus Semua</button>
+        <button class="btn-primary" onclick="handleConfirmResetDevice()" type="button"><i data-lucide="refresh-cw"></i> Atur Ulang Terpilih</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL PEMBAYARAN ===== -->
+  <div class="modal-overlay" id="userPaymentModal" onclick="closeModalOutside(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i data-lucide="credit-card"></i> Pembayaran via QRIS</div>
+        <button class="modal-close" onclick="closeUserPaymentModal()" type="button"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="userPaymentUsername" /><input type="hidden" id="userPaymentPlan" />
+        <div style="text-align:center;margin-bottom:14px;">
+          <p style="color:var(--text);font-weight:600;margin-bottom:4px;">Paket <strong id="paymentPlanLabel">Bulanan</strong></p>
+          <p style="color:var(--text-muted);font-weight:700;font-size:15px;">Rp <span id="userPaymentAmount">46.000</span></p>
+        </div>
+        <div class="qris-card"><img id="userQrisImage" src="../images/qris.jpeg" style="display:block;max-width:230px;width:100%;height:auto;margin:0 auto;border-radius:8px;background:#fff;" /></div>
+        <p style="margin-top:12px;font-size:12px;color:var(--text-muted);">Setelah transfer berhasil, hubungi kami untuk aktivasi kunci akses Anda.</p>
+      </div>
+      <div class="modal-footer" style="justify-content:center;">
+        <a class="btn-primary" href="https://t.me/Cendekias_bot" target="_blank" style="text-decoration:none;"><i data-lucide="send"></i> Hubungi Kami</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Expiry Warning -->
+  <div class="key-expiry-warning hidden" id="keyExpiryWarning">
+    <i data-lucide="alert-triangle"></i>
+    <div class="key-expiry-warning-text">
+      <strong id="keyExpiryWarningTitle">Kunci Akses Segera Kadaluarsa!</strong>
+      <span id="keyExpiryWarningDetail">Harap segera perpanjang kunci akses Anda.</span>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast" id="toast"><span id="toastIcon"><i data-lucide="check-circle-2"></i></span><span id="toastMsg">Berhasil!</span></div>
+
+  <!-- ===== KONFIRMASI ===== -->
+  <div class="modal-overlay" id="confirmModal" onclick="closeModalOutside(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i data-lucide="alert-triangle"></i> Konfirmasi Tindakan</div>
+        <button class="modal-close" onclick="confirmModalNo()" type="button"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body"><p id="confirmModalMsg">Apakah Anda yakin ingin melanjutkan?</p></div>
+      <div class="modal-footer" style="justify-content:center;">
+        <button class="btn-secondary" onclick="confirmModalNo()" type="button"><i data-lucide="x"></i> Batal</button>
+        <button class="btn-primary" id="confirmModalBtn" onclick="confirmModalYes()" type="button"><i data-lucide="check"></i> Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL BROADCAST ===== -->
+  <div class="modal-overlay" id="broadcastModal" onclick="closeModalOutside(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i data-lucide="megaphone"></i> <span id="broadcastModalTitle">Buat Broadcast</span></div>
+        <button class="modal-close" onclick="closeBroadcastModal()" type="button"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="broadcastEditId" />
+        <div class="pw-field-group">
+          <label class="pw-label">Judul <span style="color:var(--red)">*</span></label>
+          <input type="text" id="broadcastTitle" class="pw-input" placeholder="Judul pengumuman..." />
+        </div>
+        <div class="pw-field-group">
+          <label class="pw-label">Pesan <span style="color:var(--red)">*</span></label>
+          <textarea id="broadcastMessage" class="pw-textarea" placeholder="Isi pesan pengumuman..."></textarea>
+        </div>
+        <div class="pw-field-group">
+          <label class="pw-label">Tipe</label>
+          <select id="broadcastType" class="pw-select">
+            <option value="info">ℹ Info</option>
+            <option value="warning">⚠ Peringatan</option>
+            <option value="danger">🚨 Penting / Darurat</option>
+            <option value="success">✓ Kabar Baik</option>
+          </select>
+        </div>
+        <div class="pw-field-group">
+          <label class="pw-label">Status</label>
+          <div class="checkbox-wrap">
+            <label class="switch"><input type="checkbox" id="broadcastActive" checked /><span class="slider"></span></label>
+            <span class="checkbox-label">Aktif — tampilkan ke pengguna</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeBroadcastModal()"><i data-lucide="x"></i> Batal</button>
+        <button class="btn-primary" onclick="handleBroadcastForm()"><i data-lucide="send"></i> Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== SIDEBAR TOGGLE (home.html style) =====
+    function closeSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (window.innerWidth <= 1024) {
+        sidebar.classList.remove('menu-active');
+        const mt = document.getElementById('menuToggler');
+        if (mt) mt.querySelector('span').innerText = 'menu';
+        updateSidebarHeight(false);
+      }
+      if (overlay) overlay.classList.remove('show');
+    }
+
+    function updateSidebarHeight(isMenuActive) {
+      const sidebar = document.getElementById('sidebar');
+      if (window.innerWidth <= 1024) {
+        sidebar.style.height = isMenuActive ? sidebar.scrollHeight + 'px' : '56px';
+        const mt = document.getElementById('menuToggler');
+        if (mt) mt.querySelector('span').innerText = isMenuActive ? 'close' : 'menu';
+      } else {
+        sidebar.style.height = 'calc(100vh - 32px)';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+
+      const sidebarToggler = document.getElementById('sidebarToggler');
+      const menuToggler = document.getElementById('menuToggler');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+
+      if (sidebarToggler) {
+        sidebarToggler.addEventListener('click', () => {
+          sidebar.classList.toggle('collapsed');
+        });
+      }
+
+      if (menuToggler) {
+        menuToggler.addEventListener('click', () => {
+          const isActive = sidebar.classList.toggle('menu-active');
+          updateSidebarHeight(isActive);
+          if (overlay) overlay.classList.toggle('show', isActive);
+        });
+      }
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) {
+          sidebar.style.height = 'calc(100vh - 32px)';
+          sidebar.classList.remove('menu-active');
+          if (overlay) overlay.classList.remove('show');
+        } else {
+          sidebar.classList.remove('collapsed');
+          updateSidebarHeight(sidebar.classList.contains('menu-active'));
+        }
+      });
+    });
+  </script>
+
+  <script src="/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CendekiaMod — Key Shop</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
+  <link rel="stylesheet" href="../static/shop.css" />
+</head>
+<body>
+
+  <div class="ambient"></div>
+  <div class="grid-bg"></div>
+
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <div class="layout">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <!-- Sidebar header -->
+      <div class="sidebar-header">
+        <a href="/" class="header-logo">
+          <div class="brand-icon"><i data-lucide="shield-check"></i></div>
+          <div class="brand-text">
+            <strong>CendekiaMod</strong>
+            <span>System v2.4</span>
+          </div>
+        </a>
+        <button class="toggler sidebar-toggler" id="sidebarToggler">
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+        <button class="toggler menu-toggler" id="menuToggler">
+          <span class="material-symbols-rounded">menu</span>
+        </button>
+      </div>
+
+      <!-- Nav links -->
+      <nav class="sidebar-nav">
+        <ul class="nav-list primary-nav">
+          <li class="nav-item">
+            <a href="/" class="nav-link" onclick="closeSidebar()">
+              <span class="nav-icon"><i data-lucide="home"></i></span>
+              <span class="nav-label">Home</span>
+            </a>
+            <span class="nav-tooltip">Home</span>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link" onclick="goToDashboard(); return false;">
+              <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+              <span class="nav-label">Dashboard</span>
+            </a>
+            <span class="nav-tooltip">Dashboard</span>
+          </li>
+          <li class="nav-item">
+            <a href="/shop" class="nav-link active" onclick="closeSidebar()">
+              <span class="nav-icon"><i data-lucide="key-round"></i></span>
+              <span class="nav-label">Key Shop <span class="badge-new">OPEN</span></span>
+            </a>
+            <span class="nav-tooltip">Key Shop <span class="badge-new">OPEN</span></span>
+          </li>
+          <li class="nav-item">
+            <a href="/download" class="nav-link" onclick="closeSidebar()">
+              <span class="nav-icon"><i data-lucide="download"></i></span>
+              <span class="nav-label">Download APK</span>
+            </a>
+            <span class="nav-tooltip">Download APK</span>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- User pill — pinned to bottom of sidebar, OUTSIDE nav -->
+      <div class="sidebar-bottom" id="sidebarBottom"></div>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main">
+      <!-- Page Hero -->
+      <div class="page-hero">
+        <div class="page-hero-eyebrow"><i data-lucide="shopping-bag"></i> Key Shop</div>
+        <h1>Beli <span>Key Akses</span><br>CendekiaMod</h1>
+        <p>Pilih paket yang sesuai kebutuhan Anda. Pembayaran via QRIS, aktivasi cepat oleh tim kami.</p>
+      </div>
+
+      <div class="content">
+        <!-- Plan Cards -->
+        <div class="plans-grid">
+
+          <!-- Hourly -->
+          <div class="plan-card" onclick="openModal('hourly')">
+            <div class="plan-icon hourly"><i data-lucide="timer"></i></div>
+            <div class="plan-label">Hourly</div>
+            <div class="plan-price"><sup>Rp</sup>5.000</div>
+            <div class="plan-period">per 1 jam</div>
+            <ul class="plan-features">
+              <li><i data-lucide="check"></i> 1 jam akses penuh</li>
+              <li><i data-lucide="check"></i> 1 perangkat</li>
+              <li><i data-lucide="check"></i> Key unik otomatis</li>
+              <li><i data-lucide="check"></i> Aktivasi instan</li>
+            </ul>
+            <button class="btn-plan btn-plan-outline"><i data-lucide="key-round"></i> Beli Sekarang</button>
+          </div>
+
+          <!-- Weekly (Featured) -->
+          <div class="plan-card featured" onclick="openModal('weekly')">
+            <div class="plan-badge">⭐ Paling Populer</div>
+            <div class="plan-icon weekly"><i data-lucide="calendar-days"></i></div>
+            <div class="plan-label">Weekly</div>
+            <div class="plan-price"><sup>Rp</sup>26.000</div>
+            <div class="plan-period">per 7 hari</div>
+            <ul class="plan-features">
+              <li><i data-lucide="check"></i> 7 hari akses penuh</li>
+              <li><i data-lucide="check"></i> 1 perangkat</li>
+              <li><i data-lucide="check"></i> Key unik otomatis</li>
+              <li><i data-lucide="check"></i> Support prioritas</li>
+            </ul>
+            <button class="btn-plan btn-plan-solid"><i data-lucide="key-round"></i> Beli Sekarang</button>
+          </div>
+
+          <!-- Monthly -->
+          <div class="plan-card" onclick="openModal('monthly')">
+            <div class="plan-icon monthly"><i data-lucide="calendar-check"></i></div>
+            <div class="plan-label">Monthly</div>
+            <div class="plan-price"><sup>Rp</sup>46.000</div>
+            <div class="plan-period">per 30 hari</div>
+            <ul class="plan-features">
+              <li><i data-lucide="check"></i> 30 hari akses penuh</li>
+              <li><i data-lucide="check"></i> 1 perangkat</li>
+              <li><i data-lucide="check"></i> Key unik otomatis</li>
+              <li><i data-lucide="check"></i> Support prioritas</li>
+            </ul>
+            <button class="btn-plan btn-plan-outline"><i data-lucide="key-round"></i> Beli Sekarang</button>
+          </div>
+
+        </div>
+
+        <!-- Info Panels -->
+        <div class="info-row">
+          <div class="info-panel">
+            <div class="info-panel-title"><i data-lucide="list-ordered"></i> Cara Pembelian</div>
+            <div class="info-panel-sub">Ikuti langkah berikut untuk mendapatkan key akses Anda.</div>
+            <ol class="step-list">
+              <li class="step-item"><div class="step-num">1</div><span>Pilih paket yang sesuai dan klik <strong style="color:var(--text);">Beli Sekarang</strong></span></li>
+              <li class="step-item"><div class="step-num">2</div><span>Scan QRIS yang ditampilkan dan lakukan pembayaran</span></li>
+              <li class="step-item"><div class="step-num">3</div><span>Hubungi kami via Telegram dengan bukti pembayaran</span></li>
+              <li class="step-item"><div class="step-num">4</div><span>Key akses akan dikirimkan dan diaktifkan oleh tim kami</span></li>
+            </ol>
+          </div>
+          <div class="info-panel">
+            <div class="info-panel-title"><i data-lucide="help-circle"></i> FAQ</div>
+            <div class="info-panel-sub">Pertanyaan yang sering ditanyakan seputar pembelian key.</div>
+            <div class="faq-item">
+              <div class="faq-q">Berapa lama aktivasi setelah pembayaran?</div>
+              <div class="faq-a">Biasanya dalam 5–15 menit setelah konfirmasi pembayaran diterima.</div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Key bisa dipakai di berapa perangkat?</div>
+              <div class="faq-a">Standarnya 1 perangkat per key. Hubungi kami jika butuh lebih.</div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Apakah key bisa diperpanjang?</div>
+              <div class="faq-a">Bisa. Hubungi kami sebelum masa aktif habis untuk perpanjangan.</div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Metode pembayaran apa yang diterima?</div>
+              <div class="faq-a">Saat ini hanya via QRIS (semua dompet digital & m-banking).</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Banner -->
+        <div class="contact-banner">
+          <div class="contact-banner-text">
+            <h3>Butuh Bantuan atau Paket Khusus?</h3>
+            <p>Hubungi admin kami langsung via Telegram untuk pembelian, perpanjangan key, atau pertanyaan seputar layanan CendekiaMod.</p>
+          </div>
+          <div class="contact-banner-actions">
+            <a href="https://t.me/Cendekias_bot" target="_blank" class="btn-tg btn-tg-primary">
+              <i data-lucide="send"></i> Hubungi via Telegram
+            </a>
+            <a href="/" class="btn-tg btn-tg-outline">
+              <i data-lucide="home"></i> Kembali ke Home
+            </a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===== MODAL PEMBAYARAN ===== -->
+  <div class="modal-overlay" id="payModal" onclick="closeModalOutside(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-header-icon" id="modalIcon" style="background:rgba(99,179,237,0.12);color:var(--accent);">
+          <i data-lucide="key-round"></i>
+        </div>
+        <div class="modal-title" id="modalTitle">Beli Key</div>
+        <button class="modal-close" onclick="closeModal()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-plan-summary">
+          <div class="modal-plan-icon" id="summaryIcon" style="background:rgba(99,179,237,0.12);color:var(--accent);">
+            <i data-lucide="key-round"></i>
+          </div>
+          <div>
+            <div class="modal-plan-name" id="summaryName">—</div>
+            <div class="modal-plan-price" id="summaryPrice">—</div>
+          </div>
+        </div>
+        <div class="qris-wrap">
+          <img src="../images/qris.jpeg" alt="QRIS Payment" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="qris-placeholder" style="display:none;">
+            <i data-lucide="qr-code"></i>
+            <span>qris.jpeg</span>
+          </div>
+        </div>
+        <p class="modal-note">Scan QR di atas lalu hubungi kami via Telegram dengan menyertakan bukti pembayaran dan <strong style="color:var(--text);">username akun</strong> Anda.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-secondary" onclick="closeModal()">Tutup</button>
+        <a href="https://t.me/Cendekias_bot" target="_blank" class="btn-modal-primary">
+          <i data-lucide="send"></i> Konfirmasi via Telegram
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast" id="toast">
+    <span id="toastIcon"><i data-lucide="check-circle-2"></i></span>
+    <span id="toastMsg">Berhasil!</span>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toastIcon"><i data-lucide="check-circle-2"></i></span>
+    <span id="toastMsg">Berhasil!</span>
+  </div>
+
+  <script>
+        // ===== PLAN DATA =====
+    const plans = {
+      hourly:  { label:'Key Hourly',  price:'Rp 5.000 / 1 jam',   icon:'timer',          bg:'rgba(246,173,85,0.12)',  color:'var(--amber)' },
+      weekly:  { label:'Key Weekly',  price:'Rp 26.000 / 7 hari', icon:'calendar-days',  bg:'rgba(99,179,237,0.12)', color:'var(--accent)' },
+      monthly: { label:'Key Monthly', price:'Rp 46.000 / 30 hari',icon:'calendar-check', bg:'rgba(104,211,145,0.12)',color:'var(--green)' },
+    };
+
+    function openModal(plan) {
+      const p = plans[plan];
+      document.getElementById('modalTitle').textContent = 'Beli ' + p.label;
+      document.getElementById('summaryName').textContent = p.label;
+      document.getElementById('summaryPrice').textContent = p.price;
+      ['modalIcon','summaryIcon'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.background = p.bg;
+        el.style.color = p.color;
+        el.innerHTML = `<i data-lucide="${p.icon}"></i>`;
+      });
+      document.getElementById('payModal').classList.add('show');
+      lucide.createIcons();
+    }
+
+    function closeModal() {
+      document.getElementById('payModal').classList.remove('show');
+    }
+
+    function closeModalOutside(e) {
+      if (e.target === document.getElementById('payModal')) closeModal();
+    }
+
+    // ===== STATE =====
+    let currentSession = null;
+    let pendingAction = null;
+
+    function initIcons() { if (window.lucide) lucide.createIcons(); }
+
+    // ===== SESSION =====
+    function loadSession() {
+      const admin = localStorage.getItem('adminSession');
+      const user = localStorage.getItem('userSession');
+      if (admin) { currentSession = JSON.parse(admin); currentSession._type = 'admin'; }
+      else if (user) { currentSession = JSON.parse(user); currentSession._type = 'user'; }
+      renderSidebarBottom();
+    }
+
+    function renderSidebarBottom() {
+      const el = document.getElementById('sidebarBottom');
+      if (currentSession) {
+        const initial = (currentSession.username || 'U').charAt(0).toUpperCase();
+        const role = currentSession.role === 'super_admin' ? 'Super Admin'
+                   : currentSession.role === 'admin' ? 'Admin' : 'User';
+        el.innerHTML = `
+          <div class="user-pill">
+            <div class="user-pill-avatar">${initial}</div>
+            <div class="user-pill-info">
+              <strong>${currentSession.username}</strong>
+              <span>${role}</span>
+            </div>
+            <button class="user-pill-logout" onclick="doLogout()" title="Logout">
+              <i data-lucide="log-out"></i>
+            </button>
+          </div>`;
+      } else {
+        el.innerHTML = `
+          <a href="/login" class="sidebar-login-btn">
+            <span class="nav-icon"><i data-lucide="log-in"></i></span>
+            <span class="nav-label">Masuk ke Akun</span>
+          </a>`;
+      }
+      initIcons();
+    }
+
+    function doLogout() {
+      const type = currentSession?._type;
+      if (type === 'admin') localStorage.removeItem('adminSession');
+      else localStorage.removeItem('userSession');
+      currentSession = null;
+      renderSidebarBottom();
+      showToast('Berhasil logout.');
+    }
+
+    // ===== NAVIGATION =====
+    function goToDashboard() {
+      closeSidebar();
+      if (!currentSession) {
+        pendingAction = 'dashboard';
+        document.getElementById('loginModalSub').textContent = 'Login diperlukan untuk mengakses Dashboard';
+        openLoginModal();
+      } else {
+        window.location.href = '/dashboard';
+      }
+    }
+
+    function handleDownload() {
+      closeSidebar();
+      window.location.href = '/download';
+    }
+
+    // ===== STATS =====
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/get-users');
+        const users = await res.json();
+        const el = document.getElementById('statUsers');
+        if (el) el.textContent = users.length.toLocaleString('id-ID');
+      } catch(e) {}
+    }
+
+    // ===== MODAL LOGIN =====
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('show');
+      document.getElementById('modalUsername').value = '';
+      document.getElementById('modalPassword').value = '';
+      document.getElementById('modalError').classList.remove('show');
+      initIcons();
+      setTimeout(() => document.getElementById('modalUsername').focus(), 200);
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('show');
+      pendingAction = null;
+    }
+
+    function closeModalOutside(e) {
+      if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.remove('show');
+        pendingAction = null;
+      }
+    }
+
+    async function doModalLogin() {
+      const username = document.getElementById('modalUsername').value.trim();
+      const password = document.getElementById('modalPassword').value;
+      const errEl = document.getElementById('modalError');
+      errEl.classList.remove('show');
+
+      if (!username || !password) {
+        errEl.querySelector('span').textContent = 'Username dan password wajib diisi.';
+        errEl.classList.add('show');
+        return;
+      }
+
+      try {
+        const adminRes = await fetch('/api/login', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({username, password})
+        });
+        const adminResult = await adminRes.json();
+
+        if (adminResult.success) {
+          currentSession = adminResult.user;
+          currentSession._type = 'admin';
+          localStorage.setItem('adminSession', JSON.stringify(currentSession));
+          closeLoginModal();
+          renderSidebarBottom();
+          showToast(`Selamat datang, ${currentSession.username}!`);
+          if (pendingAction === 'dashboard') { goToDashboard(); pendingAction = null; }
+          return;
+        }
+
+        const userRes = await fetch('/api/user-login', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({username, password, deviceId: getBrowserDeviceId()})
+        });
+        const userResult = await userRes.json();
+
+        if (userResult.success) {
+          currentSession = userResult;
+          currentSession._type = 'user';
+          localStorage.setItem('userSession', JSON.stringify(currentSession));
+          closeLoginModal();
+          renderSidebarBottom();
+          showToast(`Selamat datang, ${currentSession.username}!`);
+          if (pendingAction === 'dashboard') { goToDashboard(); pendingAction = null; }
+          return;
+        }
+
+        errEl.querySelector('span').textContent = 'Username atau password salah.';
+        errEl.classList.add('show');
+      } catch(e) {
+        errEl.querySelector('span').textContent = 'Server tidak merespon.';
+        errEl.classList.add('show');
+      }
+    }
+
+    function togglePw(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.innerHTML = isHidden ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+      lucide.createIcons();
+    }
+
+    function getBrowserDeviceId() {
+      let id = localStorage.getItem('deviceId');
+      if (!id) { id = 'WEB-' + Math.random().toString(36).substring(2,15); localStorage.setItem('deviceId', id); }
+      return id;
+    }
+
+    // ===== SIDEBAR TOGGLE =====
+    function closeSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (window.innerWidth <= 1024) {
+        sidebar.classList.remove('menu-active');
+        const mt = document.getElementById('menuToggler');
+        if (mt) mt.querySelector('span').innerText = 'menu';
+        updateSidebarHeight(false);
+      }
+      if (overlay) overlay.classList.remove('show');
+    }
+
+    function updateSidebarHeight(isMenuActive) {
+      const sidebar = document.getElementById('sidebar');
+      if (window.innerWidth <= 1024) {
+        sidebar.style.height = isMenuActive ? sidebar.scrollHeight + 'px' : '56px';
+        const mt = document.getElementById('menuToggler');
+        if (mt) mt.querySelector('span').innerText = isMenuActive ? 'close' : 'menu';
+      } else {
+        sidebar.style.height = 'calc(100vh - 32px)';
+      }
+    }
+
+    // ===== TOAST =====
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      document.getElementById('toastIcon').innerHTML = isError
+        ? '<i data-lucide="x-circle"></i>'
+        : '<i data-lucide="check-circle-2"></i>';
+      lucide.createIcons();
+      t.classList.toggle('error', isError);
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ===== BOOT =====
+    document.addEventListener('DOMContentLoaded', () => {
+      initIcons();
+      loadSession();
+      loadStats();
+
+      const sidebarToggler = document.getElementById('sidebarToggler');
+      const menuToggler = document.getElementById('menuToggler');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+
+      if (sidebarToggler) {
+        sidebarToggler.addEventListener('click', () => {
+          sidebar.classList.toggle('collapsed');
+        });
+      }
+
+      if (menuToggler) {
+        menuToggler.addEventListener('click', () => {
+          const isActive = sidebar.classList.toggle('menu-active');
+          updateSidebarHeight(isActive);
+          if (overlay) overlay.classList.toggle('show', isActive);
+        });
+      }
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) {
+          sidebar.style.height = 'calc(100vh - 32px)';
+          sidebar.classList.remove('menu-active');
+          if (overlay) overlay.classList.remove('show');
+        } else {
+          sidebar.classList.remove('collapsed');
+          updateSidebarHeight(sidebar.classList.contains('menu-active'));
+        }
+      });
+    });
+  </script>
+</body>
+</html>

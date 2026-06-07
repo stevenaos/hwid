@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — CendekiaMod</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../static/login.css" />
+</head>
+<body>
+  <div class="ambient"></div>
+  <div class="grid-bg"></div>
+
+  <div class="page">
+    <div class="login-card">
+      <a href="/" class="back-link">
+        <i data-lucide="arrow-left"></i> Kembali ke Home
+      </a>
+
+      <div class="brand">
+        <div class="brand-icon"><i data-lucide="shield-check"></i></div>
+        <div class="brand-text">
+          <strong>CendekiaMod</strong>
+          <span>Secure Access</span>
+        </div>
+      </div>
+
+      <h1 class="login-title">Masuk ke Akun</h1>
+      <p class="login-sub">Masukkan username dan password Anda — sistem akan otomatis mendeteksi tipe akun (Admin / User).</p>
+
+      <div class="info-box">
+        <i data-lucide="info"></i>
+        <span>Login berlaku untuk semua tipe akun. Admin akan diarahkan ke panel administrasi, pengguna biasa ke dashboard key.</span>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Username</label>
+        <div class="field-wrap">
+          <span class="field-icon"><i data-lucide="user"></i></span>
+          <input type="text" id="loginUsername" class="field-input" placeholder="Masukkan username..." autocomplete="username" onkeydown="if(event.key==='Enter') doLogin();" />
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <div class="field-wrap">
+          <span class="field-icon"><i data-lucide="lock"></i></span>
+          <input type="password" id="loginPassword" class="field-input" placeholder="Masukkan password..." autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin();" />
+          <button class="toggle-pw" onclick="togglePw('loginPassword', this)" type="button">
+            <i data-lucide="eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="error-msg" id="loginError">
+        <i data-lucide="x-circle"></i>
+        <span>Username atau password salah.</span>
+      </div>
+
+      <button class="btn-login" id="loginBtn" onclick="doLogin()">
+        <i data-lucide="log-in"></i> Masuk ke Sistem
+      </button>
+
+      <div class="login-footer">SYSTEM v2.4.1 · SECURE LOGIN</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <span id="toastIcon"><i data-lucide="check-circle-2"></i></span>
+    <span id="toastMsg">Berhasil!</span>
+  </div>
+
+  <script>
+    function initIcons() { if (window.lucide) lucide.createIcons(); }
+
+    function togglePw(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.innerHTML = isHidden ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+      lucide.createIcons();
+    }
+
+    function getBrowserDeviceId() {
+      let id = localStorage.getItem('deviceId');
+      if (!id) { id = 'WEB-' + Math.random().toString(36).substring(2,15); localStorage.setItem('deviceId', id); }
+      return id;
+    }
+
+    async function doLogin() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const errEl = document.getElementById('loginError');
+      const btn = document.getElementById('loginBtn');
+      const uInput = document.getElementById('loginUsername');
+      const pInput = document.getElementById('loginPassword');
+
+      errEl.classList.remove('show');
+      uInput.classList.remove('error');
+      pInput.classList.remove('error');
+
+      if (!username || !password) {
+        errEl.querySelector('span').textContent = 'Username dan password wajib diisi.';
+        errEl.classList.add('show');
+        uInput.classList.add('error');
+        pInput.classList.add('error');
+        return;
+      }
+
+      btn.classList.add('loading');
+      btn.innerHTML = '<i data-lucide="loader-2"></i> Memverifikasi...';
+      initIcons();
+
+      try {
+        // Try admin login first
+        const adminRes = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const adminResult = await adminRes.json();
+
+        if (adminResult.success) {
+          const session = adminResult.user;
+          const isRealAdmin = session.role === 'super_admin' || session.role === 'admin';
+
+          if (isRealAdmin) {
+            session._type = 'admin';
+            localStorage.setItem('adminSession', JSON.stringify(session));
+            showToast(`Selamat datang, ${session.username}!`);
+            setTimeout(() => { window.location.href = '/dashboard'; }, 800);
+          } else {
+            // Role user — simpan sebagai userSession, arahkan ke member dashboard
+            session._type = 'user';
+            localStorage.setItem('userSession', JSON.stringify(session));
+            showToast(`Selamat datang, ${session.username}!`);
+            setTimeout(() => { window.location.href = '/'; }, 800);
+          }
+          return;
+        }
+
+        // Try user login
+        const userRes = await fetch('/api/user-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, deviceId: getBrowserDeviceId() })
+        });
+        const userResult = await userRes.json();
+
+        if (userResult.success) {
+          const session = userResult;
+          session._type = 'user';
+          localStorage.setItem('userSession', JSON.stringify(session));
+          showToast(`Selamat datang, ${session.username}!`);
+
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 800);
+          return;
+        }
+
+        // Both failed
+        uInput.classList.add('error');
+        pInput.classList.add('error');
+        errEl.querySelector('span').textContent = userResult.message || 'Username atau password salah.';
+        errEl.classList.add('show');
+
+      } catch (e) {
+        errEl.querySelector('span').textContent = 'Server tidak merespon. Coba lagi.';
+        errEl.classList.add('show');
+      } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i data-lucide="log-in"></i> Masuk ke Sistem';
+        initIcons();
+      }
+    }
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      document.getElementById('toastIcon').innerHTML = isError
+        ? '<i data-lucide="x-circle"></i>'
+        : '<i data-lucide="check-circle-2"></i>';
+      lucide.createIcons();
+      t.classList.toggle('error', isError);
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initIcons();
+      // If already logged in, redirect
+      const admin = localStorage.getItem('adminSession');
+      const user  = localStorage.getItem('userSession');
+      if (admin) {
+        const s = JSON.parse(admin);
+        const isRealAdmin = s.role === 'super_admin' || s.role === 'admin';
+        window.location.href = isRealAdmin ? '/dashboard' : '/';
+      } else if (user) {
+        window.location.href = '/';
+      }
+    });
+  </script>
+</body>
+</html>

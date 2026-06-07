@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CendekiaMod — Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
+  <link rel="stylesheet" href="../static/home.css" />
+</head>
+<body>
+  <div class="ambient"></div>
+  <div class="grid-bg"></div>
+
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <div class="layout">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <!-- Sidebar header -->
+      <div class="sidebar-header">
+        <a href="/" class="header-logo">
+          <div class="brand-icon"><i data-lucide="shield-check"></i></div>
+          <div class="brand-text">
+            <strong>CendekiaMod</strong>
+            <span>System v2.4</span>
+          </div>
+        </a>
+        <button class="toggler sidebar-toggler" id="sidebarToggler">
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+        <button class="toggler menu-toggler" id="menuToggler">
+          <span class="material-symbols-rounded">menu</span>
+        </button>
+      </div>
+
+      <!-- Nav links -->
+      <nav class="sidebar-nav">
+        <ul class="nav-list primary-nav">
+          <li class="nav-item">
+            <a href="/" class="nav-link active" onclick="closeSidebar()">
+              <span class="nav-icon"><i data-lucide="home"></i></span>
+              <span class="nav-label">Home <span class="badge-new">OPEN</span></span>
+            </a>
+            <span class="nav-tooltip">Home <span class="badge-new">OPEN</span></span>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link" onclick="goToDashboard(); return false;">
+              <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+              <span class="nav-label">Dashboard</span>
+            </a>
+            <span class="nav-tooltip">Dashboard</span>
+          </li>
+          <li class="nav-item">
+            <a href="/shop" class="nav-link" onclick="closeSidebar()">
+              <span class="nav-icon"><i data-lucide="key-round"></i></span>
+              <span class="nav-label">Key Shop</span>
+            </a>
+            <span class="nav-tooltip">Key Shop</span>
+          </li>
+          <li class="nav-item">
+            <a href="/download" class="nav-link" onclick="closeSidebar()">
+              <span class="nav-icon"><i data-lucide="download"></i></span>
+              <span class="nav-label">Download APK</span>
+            </a>
+            <span class="nav-tooltip">Download APK</span>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- User pill — pinned to bottom of sidebar, OUTSIDE nav -->
+      <div class="sidebar-bottom" id="sidebarBottom"></div>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-eyebrow">
+          <i data-lucide="zap"></i> Platform Manajemen Sistem
+        </div>
+        <h1 class="hero-title">
+          Kelola Akun &<br><span class="grad">Key Sistem</span><br>dengan Mudah
+        </h1>
+        <p class="hero-sub">
+          CendekiaMod memberi Anda kontrol penuh atas pengguna, lisensi, dan konfigurasi sistem semuanya dalam satu panel yang cepat dan aman.
+        </p>
+        <div class="hero-actions">
+          <a href="#" class="btn-cta btn-cta-primary" onclick="goToDashboard(); return false;">
+            <i data-lucide="layout-dashboard"></i> Buka Dashboard
+          </a>
+          <a href="#" class="btn-cta btn-cta-apk" onclick="handleDownload(); return false;">
+            <i data-lucide="smartphone"></i> Download APK
+          </a>
+          <a href="/shop" class="btn-cta btn-cta-outline">
+            <i data-lucide="key-round"></i> Beli Key
+          </a>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-val" id="statUsers">—</span>
+          <div class="stat-lbl">Total Pengguna</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val">99.8%</span>
+          <div class="stat-lbl">Uptime Server</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val">v2.4.1</span>
+          <div class="stat-lbl">Versi Sistem</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val">24/7</span>
+          <div class="stat-lbl">Support Online</div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <section class="section">
+        <div class="section-title">Fitur Unggulan</div>
+        <h2 class="section-heading">Semua yang Anda Butuhkan</h2>
+        <div class="cards-grid">
+          <div class="feature-card">
+            <div class="fc-icon blue"><i data-lucide="users"></i></div>
+            <div class="fc-title">Manajemen Pengguna</div>
+            <div class="fc-desc">Buat, edit, dan hapus akun dengan cepat. Kelola role, key, dan status perangkat secara real-time.</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-icon green"><i data-lucide="key-round"></i></div>
+            <div class="fc-title">Sistem Lisensi Key</div>
+            <div class="fc-desc">Generate key otomatis dengan durasi fleksibel — hourly, weekly, monthly, atau permanent.</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-icon purple"><i data-lucide="smartphone"></i></div>
+            <div class="fc-title">Kontrol Perangkat</div>
+            <div class="fc-desc">Batasi akses per perangkat dan reset device terdaftar dengan satu klik dari panel admin.</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-icon yellow"><i data-lucide="activity"></i></div>
+            <div class="fc-title">Log Aktivitas</div>
+            <div class="fc-desc">Pantau semua aktivitas sistem secara real-time. Setiap aksi tercatat dengan timestamp dan detail.</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-icon red"><i data-lucide="shield-off"></i></div>
+            <div class="fc-title">Blacklist & Keamanan</div>
+            <div class="fc-desc">Blokir pengguna bermasalah secara instan dan lindungi sistem dari akses yang tidak sah.</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-icon teal"><i data-lucide="credit-card"></i></div>
+            <div class="fc-title">Pembayaran QRIS</div>
+            <div class="fc-desc">Proses pembelian key langsung via QRIS. Cepat, mudah, dan terverifikasi otomatis.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Download APK -->
+      <div class="download-section" id="downloadSection">
+        <div class="dl-inner">
+          <div class="dl-text">
+            <div class="dl-badge"><i data-lucide="smartphone"></i> Android App</div>
+            <div class="dl-title">Download Aplikasi APK</div>
+            <div class="dl-desc">Akses sistem langsung dari smartphone Anda. Install APK resmi CendekiaMod dan nikmati kemudahan di mana saja.</div>
+            <div class="dl-version">v2.4.1 · Android 8.0+ · 24.5 MB</div>
+          </div>
+          <div class="dl-actions">
+            <a href="#" class="btn-cta btn-cta-apk" onclick="handleDownload(); return false;">
+              <i data-lucide="download"></i> Download APK
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pricing -->
+      <section class="section">
+        <div class="section-title">Harga</div>
+        <h2 class="section-heading">Pilih Paket Key</h2>
+        <div class="pricing-grid">
+          <div class="price-card">
+            <div class="price-duration">Hourly</div>
+            <div class="price-amount">Rp 5<span>k</span></div>
+            <div class="price-period">per jam</div>
+            <ul class="price-features">
+              <li><i data-lucide="check"></i> 1 jam akses penuh</li>
+              <li><i data-lucide="check"></i> 1 perangkat</li>
+              <li><i data-lucide="check"></i> Key unik otomatis</li>
+            </ul>
+            <a href="/shop" class="btn-price btn-price-outline">Beli Sekarang</a>
+          </div>
+          <div class="price-card featured">
+            <div class="price-duration">Weekly</div>
+            <div class="price-amount">Rp 26<span>k</span></div>
+            <div class="price-period">per 7 hari</div>
+            <ul class="price-features">
+              <li><i data-lucide="check"></i> 7 hari akses penuh</li>
+              <li><i data-lucide="check"></i> 1 perangkat</li>
+              <li><i data-lucide="check"></i> Key unik otomatis</li>
+              <li><i data-lucide="check"></i> Support prioritas</li>
+            </ul>
+            <a href="/shop" class="btn-price btn-price-solid">Beli Sekarang</a>
+          </div>
+          <div class="price-card">
+            <div class="price-duration">Monthly</div>
+            <div class="price-amount">Rp 46<span>k</span></div>
+            <div class="price-period">per 30 hari</div>
+            <ul class="price-features">
+              <li><i data-lucide="check"></i> 30 hari akses penuh</li>
+              <li><i data-lucide="check"></i> 1 perangkat</li>
+              <li><i data-lucide="check"></i> Key unik otomatis</li>
+              <li><i data-lucide="check"></i> Support prioritas</li>
+            </ul>
+            <a href="/shop" class="btn-price btn-price-outline">Beli Sekarang</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <span>© 2026 CendekiaMod · SYSTEM v2.4.1</span>
+        <span>SECURE ACCESS · ALL RIGHTS RESERVED</span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Login Modal -->
+  <div class="modal-overlay" id="loginModal" onclick="closeModalOutside(event)">
+    <div class="modal-card modal-card-inner">
+      <button class="modal-close-btn" onclick="closeLoginModal()" type="button">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="modal-title">Masuk ke Akun</div>
+      <div class="modal-sub" id="loginModalSub">Login diperlukan untuk melanjutkan</div>
+      <div class="field-group">
+        <label class="field-label">Username</label>
+        <div class="field-wrap">
+          <span class="field-icon"><i data-lucide="user"></i></span>
+          <input type="text" id="modalUsername" class="field-input" placeholder="Masukkan username..." onkeydown="if(event.key==='Enter') doModalLogin();" />
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <div class="field-wrap">
+          <span class="field-icon"><i data-lucide="lock"></i></span>
+          <input type="password" id="modalPassword" class="field-input" placeholder="Masukkan password..." onkeydown="if(event.key==='Enter') doModalLogin();" />
+          <button class="toggle-pw" onclick="togglePw('modalPassword', this)" type="button"><i data-lucide="eye"></i></button>
+        </div>
+      </div>
+      <div class="error-msg" id="modalError">
+        <i data-lucide="x-circle"></i><span>Username atau password salah.</span>
+      </div>
+      <button class="btn-submit" onclick="doModalLogin()">
+        <i data-lucide="log-in"></i> Masuk
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toastIcon"><i data-lucide="check-circle-2"></i></span>
+    <span id="toastMsg">Berhasil!</span>
+  </div>
+
+  <script>
+    // ===== STATE =====
+    let currentSession = null;
+    let pendingAction = null;
+
+    function initIcons() { if (window.lucide) lucide.createIcons(); }
+
+    // ===== SESSION =====
+    function loadSession() {
+      const admin = localStorage.getItem('adminSession');
+      const user = localStorage.getItem('userSession');
+      if (admin) { currentSession = JSON.parse(admin); currentSession._type = 'admin'; }
+      else if (user) { currentSession = JSON.parse(user); currentSession._type = 'user'; }
+      renderSidebarBottom();
+    }
+
+    function renderSidebarBottom() {
+      const el = document.getElementById('sidebarBottom');
+      if (currentSession) {
+        const initial = (currentSession.username || 'U').charAt(0).toUpperCase();
+        const role = currentSession.role === 'super_admin' ? 'Super Admin'
+                   : currentSession.role === 'admin' ? 'Admin' : 'User';
+        el.innerHTML = `
+          <div class="user-pill">
+            <div class="user-pill-avatar">${initial}</div>
+            <div class="user-pill-info">
+              <strong>${currentSession.username}</strong>
+              <span>${role}</span>
+            </div>
+            <button class="user-pill-logout" onclick="doLogout()" title="Logout">
+              <i data-lucide="log-out"></i>
+            </button>
+          </div>`;
+      } else {
+        el.innerHTML = `
+          <a href="/login" class="sidebar-login-btn">
+            <span class="nav-icon"><i data-lucide="log-in"></i></span>
+            <span class="nav-label">Masuk ke Akun</span>
+          </a>`;
+      }
+      initIcons();
+    }
+
+    function doLogout() {
+      const type = currentSession?._type;
+      if (type === 'admin') localStorage.removeItem('adminSession');
+      else localStorage.removeItem('userSession');
+      currentSession = null;
+      renderSidebarBottom();
+      showToast('Berhasil logout.');
+    }
+
+    // ===== NAVIGATION =====
+    function goToDashboard() {
+      closeSidebar();
+      if (!currentSession) {
+        pendingAction = 'dashboard';
+        document.getElementById('loginModalSub').textContent = 'Login diperlukan untuk mengakses Dashboard';
+        openLoginModal();
+      } else {
+        window.location.href = '/dashboard';
+      }
+    }
+
+    function handleDownload() {
+      closeSidebar();
+      window.location.href = '/download';
+    }
+
+    // ===== STATS =====
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/get-users');
+        const users = await res.json();
+        const el = document.getElementById('statUsers');
+        if (el) el.textContent = users.length.toLocaleString('id-ID');
+      } catch(e) {}
+    }
+
+    // ===== MODAL LOGIN =====
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('show');
+      document.getElementById('modalUsername').value = '';
+      document.getElementById('modalPassword').value = '';
+      document.getElementById('modalError').classList.remove('show');
+      initIcons();
+      setTimeout(() => document.getElementById('modalUsername').focus(), 200);
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('show');
+      pendingAction = null;
+    }
+
+    function closeModalOutside(e) {
+      if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.remove('show');
+        pendingAction = null;
+      }
+    }
+
+    async function doModalLogin() {
+      const username = document.getElementById('modalUsername').value.trim();
+      const password = document.getElementById('modalPassword').value;
+      const errEl = document.getElementById('modalError');
+      errEl.classList.remove('show');
+
+      if (!username || !password) {
+        errEl.querySelector('span').textContent = 'Username dan password wajib diisi.';
+        errEl.classList.add('show');
+        return;
+      }
+
+      try {
+        const adminRes = await fetch('/api/login', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({username, password})
+        });
+        const adminResult = await adminRes.json();
+
+        if (adminResult.success) {
+          currentSession = adminResult.user;
+          currentSession._type = 'admin';
+          localStorage.setItem('adminSession', JSON.stringify(currentSession));
+          closeLoginModal();
+          renderSidebarBottom();
+          showToast(`Selamat datang, ${currentSession.username}!`);
+          if (pendingAction === 'dashboard') { goToDashboard(); pendingAction = null; }
+          return;
+        }
+
+        const userRes = await fetch('/api/user-login', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({username, password, deviceId: getBrowserDeviceId()})
+        });
+        const userResult = await userRes.json();
+
+        if (userResult.success) {
+          currentSession = userResult;
+          currentSession._type = 'user';
+          localStorage.setItem('userSession', JSON.stringify(currentSession));
+          closeLoginModal();
+          renderSidebarBottom();
+          showToast(`Selamat datang, ${currentSession.username}!`);
+          if (pendingAction === 'dashboard') { goToDashboard(); pendingAction = null; }
+          return;
+        }
+
+        errEl.querySelector('span').textContent = 'Username atau password salah.';
+        errEl.classList.add('show');
+      } catch(e) {
+        errEl.querySelector('span').textContent = 'Server tidak merespon.';
+        errEl.classList.add('show');
+      }
+    }
+
+    function togglePw(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.innerHTML = isHidden ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+      lucide.createIcons();
+    }
+
+    function getBrowserDeviceId() {
+      let id = localStorage.getItem('deviceId');
+      if (!id) { id = 'WEB-' + Math.random().toString(36).substring(2,15); localStorage.setItem('deviceId', id); }
+      return id;
+    }
+
+    // ===== SIDEBAR TOGGLE =====
+    function closeSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (window.innerWidth <= 1024) {
+        sidebar.classList.remove('menu-active');
+        const mt = document.getElementById('menuToggler');
+        if (mt) mt.querySelector('span').innerText = 'menu';
+        updateSidebarHeight(false);
+      }
+      if (overlay) overlay.classList.remove('show');
+    }
+
+    function updateSidebarHeight(isMenuActive) {
+      const sidebar = document.getElementById('sidebar');
+      if (window.innerWidth <= 1024) {
+        sidebar.style.height = isMenuActive ? sidebar.scrollHeight + 'px' : '56px';
+        const mt = document.getElementById('menuToggler');
+        if (mt) mt.querySelector('span').innerText = isMenuActive ? 'close' : 'menu';
+      } else {
+        sidebar.style.height = 'calc(100vh - 32px)';
+      }
+    }
+
+    // ===== TOAST =====
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      document.getElementById('toastIcon').innerHTML = isError
+        ? '<i data-lucide="x-circle"></i>'
+        : '<i data-lucide="check-circle-2"></i>';
+      lucide.createIcons();
+      t.classList.toggle('error', isError);
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ===== BOOT =====
+    document.addEventListener('DOMContentLoaded', () => {
+      initIcons();
+      loadSession();
+      loadStats();
+
+      const sidebarToggler = document.getElementById('sidebarToggler');
+      const menuToggler = document.getElementById('menuToggler');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+
+      if (sidebarToggler) {
+        sidebarToggler.addEventListener('click', () => {
+          sidebar.classList.toggle('collapsed');
+        });
+      }
+
+      if (menuToggler) {
+        menuToggler.addEventListener('click', () => {
+          const isActive = sidebar.classList.toggle('menu-active');
+          updateSidebarHeight(isActive);
+          if (overlay) overlay.classList.toggle('show', isActive);
+        });
+      }
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) {
+          sidebar.style.height = 'calc(100vh - 32px)';
+          sidebar.classList.remove('menu-active');
+          if (overlay) overlay.classList.remove('show');
+        } else {
+          sidebar.classList.remove('collapsed');
+          updateSidebarHeight(sidebar.classList.contains('menu-active'));
+        }
+      });
+    });
+  </script>
+</body>
+</html>

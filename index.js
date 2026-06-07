@@ -10,11 +10,9 @@ const PORT = process.env.PORT || 1715;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname, {
-  index: false,          // jangan auto-serve index.html untuk /
-  extensions: false,     // jangan auto-resolve .html
-}));
-
+app.use(express.static(path.join(__dirname, "assets/public")));
+app.use("/static", express.static(path.join(__dirname, "assets/static")));
+app.use(express.static(__dirname)); // ← tambah ini untuk serve script.js
 
 // ================= DATABASE =================
 mongoose
@@ -130,13 +128,9 @@ function generateKey() {
 
 function generateSessionToken() {
   return (
-    Math.random()
-      .toString(36)
-      .slice(2) +
+    Math.random().toString(36).slice(2) +
     Date.now() +
-    Math.random()
-      .toString(36)
-      .slice(2)
+    Math.random().toString(36).slice(2)
   );
 }
 
@@ -213,76 +207,39 @@ app.post("/api/login", async (req, res) => {
   });
 });
 
-
 // ================= USER LOGIN =================
 app.post("/api/user-login", async (req, res) => {
   try {
+    const { username, password, deviceId } = req.body;
 
-    const {
+    const user = await User.findOne({
       username,
       password,
-      deviceId,
-    } = req.body;
-
-    const user =
-      await User.findOne({
-        username,
-        password,
-      });
+    });
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message:
-          "Username atau password salah.",
+        message: "Username atau password salah.",
       });
     }
 
-    const config =
-      await getConfig();
+    const config = await getConfig();
 
-    if (
-      config.blacklistedUsers[
-        username
-      ]
-    ) {
+    if (config.blacklistedUsers[username]) {
       return res.status(403).json({
         success: false,
-        message:
-          "Akun diblacklist.",
+        message: "Akun diblacklist.",
       });
     }
 
-    // ================= DEVICE CHECK =================
-    if (
-      !user.allowed_devices.includes(
-        deviceId
-      )
-    ) {
-
-      if (
-        user.allowed_devices.length >=
-        user.max_devices
-      ) {
-
-        return res.status(403).json({
-          success: false,
-          message:
-            "Batas perangkat tercapai.",
-        });
-
-      }
-
-      user.allowed_devices.push(
-        deviceId
-      );
-
-      await user.save();
-    }
+    // NOTE: For web-based user login we do NOT register or save the
+    // `deviceId` into `allowed_devices`. Device registration and
+    // enforcement remains in place for key-login and other device-bound
+    // authentication flows.
 
     // ================= CREATE SESSION =================
-    const token =
-      generateSessionToken();
+    const token = generateSessionToken();
 
     await Session.deleteMany({
       username,
@@ -300,8 +257,7 @@ app.post("/api/user-login", async (req, res) => {
 
       token,
 
-      username:
-        user.username,
+      username: user.username,
 
       email: user.email,
 
@@ -309,37 +265,26 @@ app.post("/api/user-login", async (req, res) => {
 
       key: user.key,
 
-      key_type:
-        user.key_type,
+      key_type: user.key_type,
 
-      key_expires_at:
-        user.key_expires_at,
+      key_expires_at: user.key_expires_at,
 
-      created_at:
-        user.created_at,
+      created_at: user.created_at,
     });
-
   } catch (err) {
-
     console.log(err);
 
     res.status(500).json({
       success: false,
-      message:
-        "Server error.",
+      message: "Server error.",
     });
-
   }
 });
 
 // ================= KEY LOGIN =================
 app.post("/api/key-login", async (req, res) => {
   try {
-
-    const {
-      key,
-      deviceId,
-    } = req.body;
+    const { key, deviceId } = req.body;
 
     // VALIDASI
     if (!key || !deviceId) {
@@ -365,11 +310,7 @@ app.post("/api/key-login", async (req, res) => {
     // BLACKLIST CHECK
     const config = await getConfig();
 
-    if (
-      config.blacklistedUsers[
-        user.username
-      ]
-    ) {
+    if (config.blacklistedUsers[user.username]) {
       return res.status(403).json({
         success: false,
         message: "Akun diblacklist.",
@@ -380,42 +321,26 @@ app.post("/api/key-login", async (req, res) => {
     if (
       user.key_type !== "permanent" &&
       user.key_expires_at &&
-      new Date() >
-        new Date(user.key_expires_at)
+      new Date() > new Date(user.key_expires_at)
     ) {
-
       return res.status(403).json({
         success: false,
         message: "Key sudah expired.",
       });
-
     }
 
     // DEVICE CHECK
-    if (
-      !user.allowed_devices.includes(
-        deviceId
-      )
-    ) {
-
+    if (!user.allowed_devices.includes(deviceId)) {
       // DEVICE LIMIT
-      if (
-        user.allowed_devices.length >=
-        user.max_devices
-      ) {
-
+      if (user.allowed_devices.length >= user.max_devices) {
         return res.status(403).json({
           success: false,
-          message:
-            "Batas perangkat tercapai.",
+          message: "Batas perangkat tercapai.",
         });
-
       }
 
       // TAMBAH DEVICE
-      user.allowed_devices.push(
-        deviceId
-      );
+      user.allowed_devices.push(deviceId);
 
       await user.save();
     }
@@ -427,8 +352,7 @@ app.post("/api/key-login", async (req, res) => {
     });
 
     // BUAT SESSION BARU
-    const token =
-      generateSessionToken();
+    const token = generateSessionToken();
 
     await Session.create({
       username: user.username,
@@ -443,227 +367,159 @@ app.post("/api/key-login", async (req, res) => {
       token,
 
       user: {
-        username:
-          user.username,
+        username: user.username,
 
-        email:
-          user.email,
+        email: user.email,
 
-        role:
-          user.role,
+        role: user.role,
 
-        created_at:
-          user.created_at,
+        created_at: user.created_at,
 
-        key_type:
-          user.key_type,
+        key_type: user.key_type,
 
-        key_expires_at:
-          user.key_expires_at,
+        key_expires_at: user.key_expires_at,
       },
     });
-
   } catch (err) {
-
     console.log(err);
 
     return res.status(500).json({
       success: false,
       message: "Server error.",
     });
-
   }
 });
 
 // ================= CHECK SESSION =================
-app.post(
-  "/api/check-session",
-  async (req, res) => {
+app.post("/api/check-session", async (req, res) => {
+  try {
+    const { token, deviceId } = req.body;
 
-    try {
-
-      const {
-        token,
-        deviceId,
-      } = req.body;
-
-      // VALIDATION
-      if (
-        !token ||
-        !deviceId
-      ) {
-
-        return res.json({
-          success: false,
-          message: "Token/device kosong",
-        });
-
-      }
-
-      // FIND SESSION
-      const session =
-        await Session.findOne({
-          token,
-        });
-
-      if (!session) {
-
-        return res.json({
-          success: false,
-          message: "Session tidak ditemukan",
-        });
-
-      }
-
-      // DEVICE CHECK
-      if (
-        session.deviceId !==
-        deviceId
-      ) {
-
-        return res.json({
-          success: false,
-          message: "Device mismatch",
-        });
-
-      }
-
-      // FIND USER
-      const user =
-        await User.findOne({
-          username:
-            session.username,
-        });
-
-      if (!user) {
-
-        await Session.deleteOne({
-          token,
-        });
-
-        return res.json({
-          success: false,
-          message: "User tidak ada",
-        });
-
-      }
-
-      // DEVICE DICABUT
-      if (
-        !user.allowed_devices.includes(
-          deviceId
-        )
-      ) {
-
-        await Session.deleteOne({
-          token,
-        });
-
-        return res.json({
-          success: false,
-          message: "Device dicabut",
-        });
-
-      }
-
-      // KEY KOSONG
-      if (!user.key) {
-
-        await Session.deleteOne({
-          token,
-        });
-
-        return res.json({
-          success: false,
-          message: "Key kosong",
-        });
-
-      }
-
-      // EXPIRED
-      if (
-        user.key_type !==
-          "permanent" &&
-        user.key_expires_at &&
-        new Date() >
-          new Date(
-            user.key_expires_at
-          )
-      ) {
-
-        await Session.deleteOne({
-          token,
-        });
-
-        return res.json({
-          success: false,
-          message: "Key expired",
-        });
-
-      }
-
-      // SUCCESS
+    // VALIDATION
+    if (!token || !deviceId) {
       return res.json({
-        success: true,
-        user: {
-          username:
-            user.username,
-          role: user.role,
-        },
-      });
-
-    } catch (err) {
-
-      console.log(err);
-
-      return res.status(500).json({
         success: false,
-        message: "Server error",
+        message: "Token/device kosong",
       });
-
     }
-  }
-);
-// ================= LOGOUT =================
-app.post(
-  "/api/logout",
-  async (req, res) => {
 
-    try {
+    // FIND SESSION
+    const session = await Session.findOne({
+      token,
+    });
 
-      const { token } =
-        req.body;
+    if (!session) {
+      return res.json({
+        success: false,
+        message: "Session tidak ditemukan",
+      });
+    }
 
+    // DEVICE CHECK
+    if (session.deviceId !== deviceId) {
+      return res.json({
+        success: false,
+        message: "Device mismatch",
+      });
+    }
+
+    // FIND USER
+    const user = await User.findOne({
+      username: session.username,
+    });
+
+    if (!user) {
       await Session.deleteOne({
         token,
       });
 
-      res.json({
-        success: true,
-      });
-
-    } catch {
-
-      res.json({
+      return res.json({
         success: false,
+        message: "User tidak ada",
+      });
+    }
+
+    // DEVICE DICABUT
+    if (!user.allowed_devices.includes(deviceId)) {
+      await Session.deleteOne({
+        token,
       });
 
+      return res.json({
+        success: false,
+        message: "Device dicabut",
+      });
     }
+
+    // KEY KOSONG
+    if (!user.key) {
+      await Session.deleteOne({
+        token,
+      });
+
+      return res.json({
+        success: false,
+        message: "Key kosong",
+      });
+    }
+
+    // EXPIRED
+    if (
+      user.key_type !== "permanent" &&
+      user.key_expires_at &&
+      new Date() > new Date(user.key_expires_at)
+    ) {
+      await Session.deleteOne({
+        token,
+      });
+
+      return res.json({
+        success: false,
+        message: "Key expired",
+      });
+    }
+
+    // SUCCESS
+    return res.json({
+      success: true,
+      user: {
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    console.log(err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
-);
+});
+// ================= LOGOUT =================
+app.post("/api/logout", async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    await Session.deleteOne({
+      token,
+    });
+
+    res.json({
+      success: true,
+    });
+  } catch {
+    res.json({
+      success: false,
+    });
+  }
+});
 
 // ================= CREATE USER =================
 app.post("/api/create-user", async (req, res) => {
   try {
-    const {
-      email,
-      username,
-      password,
-      role,
-      createKey,
-      keyType,
-      maxDevices,
-    } = req.body;
+    const { email, username, password, role, createKey, keyType, maxDevices } =
+      req.body;
 
     const checkUser = await User.findOne({
       $or: [{ username }, { email }],
@@ -688,33 +544,23 @@ app.post("/api/create-user", async (req, res) => {
       user.key = generateKey();
       user.key_type = keyType;
       user.key_expires_at = null; // reset
-      
-      if (keyType === "hourly") { 
-        user.key_expires_at = new Date( 
-          Date.now() + 1 * 60 * 60 * 1000, 
-        );
+
+      if (keyType === "hourly") {
+        user.key_expires_at = new Date(Date.now() + 1 * 60 * 60 * 1000);
       }
-      
+
       if (keyType === "weekly") {
-        user.key_expires_at = new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000,
-        );
+        user.key_expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       }
 
       if (keyType === "monthly") {
-        user.key_expires_at = new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1000,
-        );
+        user.key_expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       }
     }
 
     await user.save();
 
-    await pushActivityLog(
-      "User Baru",
-      `User '${username}' dibuat.`,
-      "#22c55e",
-    );
+    await pushActivityLog("User Baru", `User '${username}' dibuat.`, "#22c55e");
 
     res.json({
       success: true,
@@ -734,30 +580,64 @@ app.post("/api/edit-user", async (req, res) => {
   try {
     const { username, newUsername, newEmail, newPassword, newRole } = req.body;
     const user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ success: false, message: "User tidak ditemukan." });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User tidak ditemukan." });
 
     if (newUsername !== undefined) {
-      if (!newUsername) return res.status(400).json({ success: false, message: "Username tidak boleh kosong." });
+      if (!newUsername)
+        return res
+          .status(400)
+          .json({ success: false, message: "Username tidak boleh kosong." });
       const exists = await User.findOne({ username: newUsername });
-      if (exists && exists.username !== username) return res.status(409).json({ success: false, message: "Username sudah dipakai." });
+      if (exists && exists.username !== username)
+        return res
+          .status(409)
+          .json({ success: false, message: "Username sudah dipakai." });
       user.username = newUsername;
-      await pushActivityLog("Edit User", `Username '${username}' → '${newUsername}'.`, "#a78bfa");
+      await pushActivityLog(
+        "Edit User",
+        `Username '${username}' → '${newUsername}'.`,
+        "#a78bfa",
+      );
     }
     if (newEmail !== undefined) {
-      if (!newEmail) return res.status(400).json({ success: false, message: "Email tidak boleh kosong." });
+      if (!newEmail)
+        return res
+          .status(400)
+          .json({ success: false, message: "Email tidak boleh kosong." });
       user.email = newEmail;
-      await pushActivityLog("Edit User", `Email user '${username}' diubah.`, "#a78bfa");
+      await pushActivityLog(
+        "Edit User",
+        `Email user '${username}' diubah.`,
+        "#a78bfa",
+      );
     }
     if (newPassword !== undefined) {
-      if (!newPassword) return res.status(400).json({ success: false, message: "Password tidak boleh kosong." });
+      if (!newPassword)
+        return res
+          .status(400)
+          .json({ success: false, message: "Password tidak boleh kosong." });
       user.password = newPassword;
-      await pushActivityLog("Edit User", `Password user '${username}' diubah.`, "#a78bfa");
+      await pushActivityLog(
+        "Edit User",
+        `Password user '${username}' diubah.`,
+        "#a78bfa",
+      );
     }
     if (newRole !== undefined) {
       const allowedRoles = ["user", "admin"];
-      if (!allowedRoles.includes(newRole)) return res.status(400).json({ success: false, message: "Role tidak valid." });
+      if (!allowedRoles.includes(newRole))
+        return res
+          .status(400)
+          .json({ success: false, message: "Role tidak valid." });
       user.role = newRole;
-      await pushActivityLog("Edit User", `Role user '${username}' diubah ke '${newRole}'.`, "#a78bfa");
+      await pushActivityLog(
+        "Edit User",
+        `Role user '${username}' diubah ke '${newRole}'.`,
+        "#a78bfa",
+      );
     }
 
     await user.save();
@@ -810,26 +690,20 @@ app.put("/api/update-user-key/:username", async (req, res) => {
     user.key = newKey;
     user.key_type = keyType;
     user.max_devices = parseInt(maxDevices) || 1;
-    
+
     // Reset expiry first
     user.key_expires_at = null;
 
     if (keyType === "hourly") {
-      user.key_expires_at = new Date(
-        Date.now() + 1 * 60 * 60 * 1000,
-      );
+      user.key_expires_at = new Date(Date.now() + 1 * 60 * 60 * 1000);
     }
-    
+
     if (keyType === "weekly") {
-      user.key_expires_at = new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000,
-      );
+      user.key_expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     }
 
     if (keyType === "monthly") {
-      user.key_expires_at = new Date(
-        Date.now() + 30 * 24 * 60 * 60 * 1000,
-      );
+      user.key_expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     }
 
     await user.save();
@@ -853,14 +727,14 @@ app.put("/api/toggle-blacklist/:username", async (req, res) => {
     const username = req.params.username;
 
     const currentStatus = !!config.blacklistedUsers[username];
-    
+
     // MongoDB tidak detect perubahan nested object, harus pakai cara ini:
     config.blacklistedUsers = {
       ...config.blacklistedUsers,
       [username]: !currentStatus,
     };
     config.markModified("blacklistedUsers"); // <-- INI YANG PENTING
-    
+
     await config.save();
 
     res.json({
@@ -887,7 +761,7 @@ app.post("/api/reset-device/:username", async (req, res) => {
       user.allowed_devices = [];
     } else {
       user.allowed_devices = user.allowed_devices.filter(
-        (id) => !targetDevices.includes(id)
+        (id) => !targetDevices.includes(id),
       );
     }
 
@@ -897,7 +771,7 @@ app.post("/api/reset-device/:username", async (req, res) => {
     await pushActivityLog(
       "Reset Device",
       `Perangkat '${req.params.username}' direset.`,
-      "#42a5f5"
+      "#42a5f5",
     );
 
     res.json({ success: true, message: "Perangkat berhasil direset." });
@@ -964,11 +838,21 @@ app.post("/api/add-log", async (req, res) => {
   });
 });
 
-app.get('/', (req, res) => res.sendFile(__dirname + '/home.html'));
-app.get('/login', (req, res) => res.sendFile(__dirname + '/login.html'));
-app.get('/dashboard', (req, res) => res.sendFile(__dirname + '/index.html'));
-app.get('/shop', (req, res) => res.sendFile(__dirname + '/shop.html'));
-app.get('/download', (req, res) => res.sendFile(__dirname + '/download.html'));
+app.get("/", (req, res) =>
+  res.sendFile(__dirname + "/assets/public/home.html"),
+);
+app.get("/login", (req, res) =>
+  res.sendFile(__dirname + "/assets/public/login.html"),
+);
+app.get("/dashboard", (req, res) =>
+  res.sendFile(__dirname + "/assets/public/dashboard.html"),
+);
+app.get("/shop", (req, res) =>
+  res.sendFile(__dirname + "/assets/public/shop.html"),
+);
+app.get("/download", (req, res) =>
+  res.sendFile(__dirname + "/assets/public/download.html"),
+);
 
 // ================= GET BROADCASTS =================
 app.get("/api/broadcasts", async (req, res) => {
@@ -983,7 +867,9 @@ app.get("/api/broadcasts", async (req, res) => {
 // ================= GET ACTIVE BROADCASTS (public - for login page) =================
 app.get("/api/broadcasts/active", async (req, res) => {
   try {
-    const broadcasts = await Broadcast.find({ active: true }).sort({ created_at: -1 });
+    const broadcasts = await Broadcast.find({ active: true }).sort({
+      created_at: -1,
+    });
     res.json({ success: true, broadcasts });
   } catch {
     res.status(500).json({ success: false, broadcasts: [] });
@@ -995,9 +881,16 @@ app.post("/api/broadcasts", async (req, res) => {
   try {
     const { title, message, type, active } = req.body;
     if (!title || !message) {
-      return res.status(400).json({ success: false, message: "Judul dan pesan wajib diisi." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Judul dan pesan wajib diisi." });
     }
-    const broadcast = await Broadcast.create({ title, message, type: type || "info", active: active !== false });
+    const broadcast = await Broadcast.create({
+      title,
+      message,
+      type: type || "info",
+      active: active !== false,
+    });
     await pushActivityLog("Broadcast Baru", `"${title}" dibuat.`, "#a78bfa");
     res.json({ success: true, broadcast });
   } catch {
@@ -1012,9 +905,12 @@ app.put("/api/broadcasts/:id", async (req, res) => {
     const broadcast = await Broadcast.findByIdAndUpdate(
       req.params.id,
       { title, message, type, active, updated_at: new Date() },
-      { new: true }
+      { new: true },
     );
-    if (!broadcast) return res.status(404).json({ success: false, message: "Broadcast tidak ditemukan." });
+    if (!broadcast)
+      return res
+        .status(404)
+        .json({ success: false, message: "Broadcast tidak ditemukan." });
     res.json({ success: true, broadcast });
   } catch {
     res.status(500).json({ success: false, message: "Server error." });
@@ -1035,14 +931,20 @@ app.delete("/api/broadcasts/:id", async (req, res) => {
 app.get("/api/app-version", async (req, res) => {
   try {
     let v = await AppVersion.findOne();
-    if (!v) v = await AppVersion.create({ current_version: "0.0.0", latest_version: "0.0.0", download_url: "", notes: "" });
+    if (!v)
+      v = await AppVersion.create({
+        current_version: "0.0.0",
+        latest_version: "0.0.0",
+        download_url: "",
+        notes: "",
+      });
     res.json({
       success: true,
       current_version: v.current_version || "0.0.0",
       latest_version: v.latest_version || "0.0.0",
       download_url: v.download_url,
       notes: v.notes,
-      force_update: v.force_update
+      force_update: v.force_update,
     });
   } catch {
     res.status(500).json({ success: false });
@@ -1052,11 +954,26 @@ app.get("/api/app-version", async (req, res) => {
 // ================= UPDATE APP VERSION =================
 app.put("/api/app-version", async (req, res) => {
   try {
-    const { current_version, latest_version, download_url, notes, force_update } = req.body;
-    if (!current_version || !latest_version) return res.status(400).json({ success: false, message: "Versi wajib diisi." });
+    const {
+      current_version,
+      latest_version,
+      download_url,
+      notes,
+      force_update,
+    } = req.body;
+    if (!current_version || !latest_version)
+      return res
+        .status(400)
+        .json({ success: false, message: "Versi wajib diisi." });
     let v = await AppVersion.findOne();
     if (!v) {
-      v = await AppVersion.create({ current_version, latest_version, download_url: download_url || "", notes: notes || "", force_update: force_update !== false });
+      v = await AppVersion.create({
+        current_version,
+        latest_version,
+        download_url: download_url || "",
+        notes: notes || "",
+        force_update: force_update !== false,
+      });
     } else {
       v.current_version = current_version;
       v.latest_version = latest_version;
@@ -1066,8 +983,16 @@ app.put("/api/app-version", async (req, res) => {
       v.updated_at = new Date();
       await v.save();
     }
-    await pushActivityLog("Update Versi", `Versi diubah — client: v${current_version} | latest: v${latest_version}.`, "#f6ad55");
-    res.json({ success: true, current_version: v.current_version, latest_version: v.latest_version });
+    await pushActivityLog(
+      "Update Versi",
+      `Versi diubah — client: v${current_version} | latest: v${latest_version}.`,
+      "#f6ad55",
+    );
+    res.json({
+      success: true,
+      current_version: v.current_version,
+      latest_version: v.latest_version,
+    });
   } catch {
     res.status(500).json({ success: false, message: "Server error." });
   }
