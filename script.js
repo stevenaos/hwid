@@ -26,15 +26,15 @@ function buildOwnerNav() {
   return `
     <div class="nav-section-label">Menu</div>
     <a class="nav-link" href="/"><i data-lucide="home"></i> <span>Home</span></a>
-    <div class="nav-link active" onclick="showPage('dashboard',this);closeSidebar()"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></div>
-    <div class="nav-link" onclick="showPage('users',this);closeSidebar()"><i data-lucide="users"></i> <span>Anggota</span></div>
-    <div class="nav-link" onclick="showPage('activity',this);closeSidebar()"><i data-lucide="clipboard-list"></i> <span>Riwayat Aktivitas</span></div>
-    <div class="nav-link" onclick="showPage('broadcast',this);closeSidebar()"><i data-lucide="megaphone"></i> <span>Broadcast & Versi</span></div>
+    <div class="nav-link active" onclick="showPage('dashboard',this)"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></div>
+    <div class="nav-link" onclick="showPage('users',this)"><i data-lucide="users"></i> <span>Anggota</span></div>
+    <div class="nav-link" onclick="showPage('activity',this)"><i data-lucide="clipboard-list"></i> <span>Riwayat Aktivitas</span></div>
+    <div class="nav-link" onclick="showPage('broadcast',this)"><i data-lucide="megaphone"></i> <span>Broadcast & Versi</span></div>
     <div class="nav-section-label">Lainnya</div>
     <a class="nav-link" href="/shop"><i data-lucide="key-round"></i> <span>Beli Key</span></a>
     <a class="nav-link" href="/download"><i data-lucide="download"></i> <span>Download Apps</span></a>
     <div class="nav-section-label">Pengaturan</div>
-    <div class="nav-link" onclick="showPage('jsonview',this);closeSidebar()"><i data-lucide="file-json"></i> <span>Konfigurasi</span></div>
+    <div class="nav-link" onclick="showPage('jsonview',this)"><i data-lucide="file-json"></i> <span>Konfigurasi</span></div>
   `;
 }
 
@@ -42,9 +42,9 @@ function buildMemberNav() {
   return `
     <div class="nav-section-label">Menu</div>
     <a class="nav-link" href="/"><i data-lucide="home"></i> <span>Home</span></a>
-    <div class="nav-link active" onclick="showPage('member',this);closeSidebar()"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></div>
-    <div class="nav-link" onclick="showPage('member-profile',this);closeSidebar()"><i data-lucide="user-round"></i> <span>Informasi Profil</span></div>
-    <div class="nav-link" onclick="showPage('member-log',this);closeSidebar()"><i data-lucide="clipboard-list"></i> <span>Log Aktivitas Saya</span></div>
+    <div class="nav-link active" onclick="showPage('member',this)"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></div>
+    <div class="nav-link" onclick="showPage('member-profile',this)"><i data-lucide="user-round"></i> <span>Informasi Profil</span></div>
+    <div class="nav-link" onclick="showPage('member-log',this)"><i data-lucide="clipboard-list"></i> <span>Log Aktivitas Saya</span></div>
     <div class="nav-section-label">Lainnya</div>
     <a class="nav-link" href="/shop"><i data-lucide="key-round"></i> <span>Beli Key</span></a>
     <a class="nav-link" href="/download"><i data-lucide="download"></i> <span>Install Aplikasi</span></a>
@@ -457,25 +457,6 @@ async function renderJSON() {
 
 
 // ===== SIDEBAR TOGGLE =====
-function toggleSidebar() {
-  const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("sidebarOverlay");
-  const isOpen = sidebar.classList.contains("open");
-  if (isOpen) {
-    sidebar.classList.remove("open");
-    if (overlay) overlay.classList.remove("show");
-  } else {
-    sidebar.classList.add("open");
-    if (overlay) overlay.classList.add("show");
-  }
-}
-
-function closeSidebar() {
-  const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("sidebarOverlay");
-  sidebar.classList.remove("open");
-  if (overlay) overlay.classList.remove("show");
-}
 
 // ===== FILL PROFILE PAGE =====
 function fillProfilePage() {
