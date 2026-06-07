@@ -13,6 +13,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "assets/public")));
 app.use("/static", express.static(path.join(__dirname, "assets/static")));
 app.use("/images", express.static(path.join(__dirname, "assets/images")));
+app.use("/apps", express.static(path.join(__dirname, "assets/apps")));
 app.use(express.static(__dirname)); // ← tambah ini untuk serve script.js
 
 // ================= DATABASE =================
