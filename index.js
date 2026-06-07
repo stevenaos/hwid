@@ -241,15 +241,13 @@ app.post("/api/user-login", async (req, res) => {
     // ================= CREATE SESSION =================
     const token = generateSessionToken();
 
-    await Session.deleteMany({
-      username,
-      deviceId,
-    });
+    // Delete any existing web sessions for this user (no deviceId binding)
+    await Session.deleteMany({ username, deviceId: null });
 
     await Session.create({
       username,
       token,
-      deviceId,
+      deviceId: null,
     });
 
     res.json({

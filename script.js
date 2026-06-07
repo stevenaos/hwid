@@ -215,7 +215,7 @@ async function doLogin() {
     const userResponse = await fetch("/api/user-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: user, password: pass, deviceId: getBrowserDeviceId() }),
+      body: JSON.stringify({ username: user, password: pass }),
     });
     const userResult = await userResponse.json();
 
@@ -337,7 +337,6 @@ async function doUserLogin() {
       body: JSON.stringify({
         username: user,
         password: pass,
-        deviceId: getBrowserDeviceId(),
       }),
     });
     const result = await response.json();
@@ -1143,48 +1142,10 @@ async function handleCreateUserForm() {
   }
 }
 
-async function checkUserKey() {
-  try {
-    const data = JSON.parse(localStorage.getItem("userSession"));
-
-    if (!data || !data.key) {
-      return;
-    }
-
-    const res = await fetch("/api/key-check", {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        key: data.key,
-
-        deviceId: getBrowserDeviceId(),
-      }),
-    });
-
-    const result = await res.json();
-
-    if (!result.success) {
-      localStorage.removeItem("userSession");
-
-      currentUserSession = null;
-
-      showToast("Akses dicabut", true);
-
-      location.href = "/index.html";
-    }
-  } catch {}
-}
-
-setInterval(checkUserKey, 500);
+// checkUserKey removed — /api/key-check is for Android key-login flow, not web session
 
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) {
-    checkUserKey();
-  }
+  // no-op for web sessions
 });
 
 // ===== LOG =====
@@ -1319,12 +1280,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const res = await fetch(`/api/user-status/${currentUserSession.username}`);
     const status = await res.json();
 
-    const deviceAllowed =
-      !status.allowed_devices ||
-      status.allowed_devices.length === 0 ||
-      status.allowed_devices.includes(getBrowserDeviceId());
-
-    if (!status.success || status.isBlacklisted || status.key !== currentUserSession.key || !deviceAllowed) {
+    if (!status.success || status.isBlacklisted) {
       await doUserLogout();
       showToast("Sesi Anda telah berakhir. Silakan masuk kembali.", true);
     }
