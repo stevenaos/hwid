@@ -50,18 +50,27 @@ const userSchema = new mongoose.Schema({
 
 const configSchema = new mongoose.Schema({
   password: String,
+
   blacklistedUsers: {
     type: Object,
     default: {},
   },
+
+  blacklistedDevices: {
+    type: Object,
+    default: {},
+  },
+
   activeSessions: {
     type: Object,
     default: {},
   },
+
   userKeys: {
     type: Object,
     default: {},
   },
+
   devices: {
     type: Array,
     default: [],
@@ -283,6 +292,28 @@ app.post("/api/user-login", async (req, res) => {
   }
 });
 
+app.post("/api/blacklist-device", async (req, res) => {
+  try {
+    const { deviceId } = req.body;
+
+    const config = await getConfig();
+
+    config.blacklistedDevices[deviceId] = true;
+    config.markModified("blacklistedDevices");
+
+    await config.save();
+
+    res.json({
+      success: true,
+      message: "Device berhasil diblacklist.",
+    });
+  } catch {
+    res.status(500).json({
+      success: false,
+    });
+  }
+});
+
 // ================= KEY LOGIN =================
 app.post("/api/key-login", async (req, res) => {
   try {
@@ -316,6 +347,14 @@ app.post("/api/key-login", async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "Akun diblacklist.",
+      });
+    }
+
+    // DEVICE BLACKLIST CHECK
+    if (config.blacklistedDevices[deviceId]) {
+      return res.status(403).json({
+        success: false,
+        message: "Device ID diblacklist.",
       });
     }
 
@@ -392,6 +431,50 @@ app.post("/api/key-login", async (req, res) => {
   }
 });
 
+app.post("/api/blacklist-device", async (req, res) => {
+  try {
+    const { deviceId } = req.body;
+
+    const config = await getConfig();
+
+    config.blacklistedDevices[deviceId] = true;
+    config.markModified("blacklistedDevices");
+
+    await config.save();
+
+    res.json({
+      success: true,
+      message: "Device berhasil diblacklist.",
+    });
+  } catch {
+    res.status(500).json({
+      success: false,
+    });
+  }
+});
+
+app.post("/api/blacklist-device", async (req, res) => {
+  try {
+    const { deviceId } = req.body;
+
+    const config = await getConfig();
+
+    config.blacklistedDevices[deviceId] = true;
+    config.markModified("blacklistedDevices");
+
+    await config.save();
+
+    res.json({
+      success: true,
+      message: "Device berhasil diblacklist.",
+    });
+  } catch {
+    res.status(500).json({
+      success: false,
+    });
+  }
+});
+
 // ================= CHECK SESSION =================
 app.post("/api/check-session", async (req, res) => {
   try {
@@ -450,6 +533,13 @@ app.post("/api/check-session", async (req, res) => {
       return res.json({
         success: false,
         message: "Device dicabut",
+      });
+    }
+    // DEVICE BLACKLIST CHECK
+    if (config.blacklistedDevices[deviceId]) {
+      return res.status(403).json({
+        success: false,
+        message: "Device ID diblacklist.",
       });
     }
 
@@ -520,8 +610,16 @@ app.post("/api/logout", async (req, res) => {
 // ================= CREATE USER =================
 app.post("/api/create-user", async (req, res) => {
   try {
-    const { email, username, password, role, createKey, keyType, maxDevices, customExpiry } =
-      req.body;
+    const {
+      email,
+      username,
+      password,
+      role,
+      createKey,
+      keyType,
+      maxDevices,
+      customExpiry,
+    } = req.body;
 
     const checkUser = await User.findOne({
       $or: [{ username }, { email }],
