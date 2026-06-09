@@ -292,6 +292,29 @@ app.post("/api/user-login", async (req, res) => {
   }
 });
 
+// ================= UNBLACKLIST DEVICE =================
+app.post("/api/unblacklist-device", async (req, res) => {
+  try {
+    const { deviceId } = req.body;
+
+    const config = await getConfig();
+
+    delete config.blacklistedDevices[deviceId];
+    config.markModified("blacklistedDevices");
+
+    await config.save();
+
+    res.json({
+      success: true,
+      message: "Device berhasil dihapus dari blacklist.",
+    });
+  } catch {
+    res.status(500).json({
+      success: false,
+    });
+  }
+});
+
 app.post("/api/blacklist-device", async (req, res) => {
   try {
     const { deviceId } = req.body;
@@ -533,13 +556,6 @@ app.post("/api/check-session", async (req, res) => {
       return res.json({
         success: false,
         message: "Device dicabut",
-      });
-    }
-    // DEVICE BLACKLIST CHECK
-    if (config.blacklistedDevices[deviceId]) {
-      return res.status(403).json({
-        success: false,
-        message: "Device ID diblacklist.",
       });
     }
 
