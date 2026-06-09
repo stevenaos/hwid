@@ -530,7 +530,14 @@ app.post("/api/check-session", async (req, res) => {
         message: "Device mismatch",
       });
     }
-
+    const config = await getConfig(); // ← tambah ini
+    if (config.blacklistedDevices[deviceId]) {
+      await Session.deleteOne({ token });
+      return res.status(403).json({
+        success: false,
+        message: "Device ID diblacklist.",
+      });
+    }
     // FIND USER
     const user = await User.findOne({
       username: session.username,
